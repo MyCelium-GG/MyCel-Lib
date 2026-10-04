@@ -115,3 +115,12 @@ publishing {
         }
     }
 }
+
+// Do NOT publish Gradle Module Metadata: this project's variants and
+// capabilities only make sense inside this build (loader disambiguation).
+// External consumers (e.g. via JitPack, which serves artifacts under
+// different coordinates) address artifacts directly and must resolve through
+// the plain POM, otherwise no variant is selectable. Verified by experiment.
+tasks.matching { it.name.startsWith('generateMetadataFileFor') }.configureEach {
+    enabled = false
+}

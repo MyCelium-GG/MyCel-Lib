@@ -112,6 +112,20 @@ publishing {
         register('mavenJava', MavenPublication) {
             artifactId base.archivesName.get()
             from components.java
+            pom.withXml {
+                // FG7 models the game itself as a module dependency
+                // (minecraft.dependency(...)). It must never leak into
+                // published metadata: locally it is the full Forge artifact
+                // (duplicate game classes for consumers), and re-hosting
+                // publishers rewrite its group into an artifact that cannot
+                // exist. The game is always provided by the runtime.
+                def doomed = asNode().dependencies?.dependency?.findAll { dep ->
+                    dep.artifactId?.text() == 'forge'
+                } ?: []
+                doomed.each { dep ->
+                    dep.parent().children().remove(dep)
+                }
+            }
         }
     }
 }

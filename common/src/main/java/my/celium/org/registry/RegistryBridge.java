@@ -2,6 +2,7 @@ package my.celium.org.registry;
 
 import java.util.function.Supplier;
 
+import my.celium.org.platform.Platform;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 
@@ -13,6 +14,11 @@ import net.minecraft.resources.ResourceKey;
  * Each loader module provides one implementation via {@link java.util.ServiceLoader}.
  */
 public interface RegistryBridge {
+    /** Which loader this bridge is for (used to pick among several in one jar). */
+    default Platform platform() {
+        return Platform.UNKNOWN;
+    }
+
     /**
      * Registers {@code factory} under {@code modId:name} in {@code registry}.
      * The factory must not run before registration time.

@@ -1,0 +1,95 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+description = rootProject.description
+
+// Merges the three loader jars (each already contains the common classes)
+// into one universal jar loadable on Fabric, Forge and NeoForge.
+// Class files: first-wins, fabric > forge > neoforge (same sources and
+// toolchain, so the bytes are equivalent; the order only needs to be stable).
+// Loader metadata (fabric.mod.json, mods.toml, neoforge.mods.toml) never
+// collides. META-INF/services files are UNIONED by mergeServices below so
+// every loader's implementation stays discoverable; PlatformHolder and the
+// registry bridge lookup then select by detected runtime.
+
+def fabricJar = project(':fabric').tasks.named('jar', Jar)
+def forgeJar = project(':forge').tasks.named('jar', Jar)
+def neoForgeJar = project(':neoforge').tasks.named('jar', Jar)
+
+def mergedServicesDir = layout.buildDirectory.dir('merged-services')
+
+tasks.register('mergeServices') {
+    dependsOn(fabricJar, forgeJar, neoForgeJar)
+    inputs.files(fabricJar.map { it.archiveFile }, forgeJar.map { it.archiveFile }, neoForgeJar.map { it.archiveFile })
+    outputs.dir(mergedServicesDir)
+
+    doLast {
+        Map<String, Set<String>> merged = new LinkedHashMap<>()
+        [fabricJar, forgeJar, neoForgeJar].each { provider ->
+            def jarFile = provider.get().archiveFile.get().asFile
+            def zip = new java.util.zip.ZipFile(jarFile)
+            try {
+                zip.entries().each { entry ->
+                    if (!entry.directory && entry.name.startsWith('META-INF/services/')) {
+                        def lines = zip.getInputStream(entry).readLines('UTF-8')
+                                .collect { it.trim() }
+                                .findAll { !it.empty && !it.startsWith('#') }
+                        merged.computeIfAbsent(entry.name, { new LinkedHashSet<>() }).addAll(lines)
+                    }
+                }
+            } finally {
+                zip.close()
+            }
+        }
+        File outDir = mergedServicesDir.get().asFile
+        merged.each { name, lines ->
+            File out = new File(outDir, name)
+            out.parentFile.mkdirs()
+            out.write(lines.join('\n') + '\n', 'UTF-8')
+        }
+    }
+}
+
+tasks.register('universalJar', Jar) {
+    dependsOn(fabricJar, forgeJar, neoForgeJar, tasks.named('mergeServices'))
+    archiveBaseName = 'mycel'
+    archiveAppendix = minecraft_version
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from(project.zipTree(fabricJar.flatMap { it.archiveFile })) {
+        exclude 'META-INF/services/*'
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    }
+    from(project.zipTree(forgeJar.flatMap { it.archiveFile })) {
+        exclude 'META-INF/services/*'
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    }
+    from(project.zipTree(neoForgeJar.flatMap { it.archiveFile })) {
+        exclude 'META-INF/services/*'
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    }
+    from(mergedServicesDir)
+
+    manifest {
+        attributes([
+                'Specification-Title'   : mod_name,
+                'Specification-Vendor'  : mod_author,
+                'Specification-Version' : project.version,
+                'Implementation-Title'  : 'mycel-universal',
+                'Implementation-Version': project.version,
+                'Implementation-Vendor' : mod_author,
+                'Built-On-Minecraft'    : minecraft_version
+        ])
+    }
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId "mycel-${minecraft_version}"
+            artifact tasks.named('universalJar')
+        }
+    }
+}

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import my.celium.org.platform.Platform;
 import my.celium.org.registry.RegistryBridge;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -17,6 +18,11 @@ import net.minecraftforge.registries.DeferredRegister;
  * the mod bus group. Order-safe for dependent mods constructed later.
  */
 public final class ForgeRegistryBridge implements RegistryBridge {
+    @Override
+    public Platform platform() {
+        return Platform.FORGE;
+    }
+
     private final Map<String, DeferredRegister<?>> registers = new LinkedHashMap<>();
     private final Set<DeferredRegister<?>> hooked = new HashSet<>();
     private volatile BusGroup busGroup;

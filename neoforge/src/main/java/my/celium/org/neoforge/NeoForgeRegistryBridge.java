@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import my.celium.org.platform.Platform;
 import my.celium.org.registry.RegistryBridge;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -21,6 +22,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  * hook immediately.
  */
 public final class NeoForgeRegistryBridge implements RegistryBridge {
+    @Override
+    public Platform platform() {
+        return Platform.NEOFORGE;
+    }
+
     private final Map<String, DeferredRegister<?>> registers = new LinkedHashMap<>();
     private final Set<DeferredRegister<?>> hooked = new HashSet<>();
     private volatile IEventBus bus;

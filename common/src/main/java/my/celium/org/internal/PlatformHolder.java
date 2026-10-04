@@ -45,6 +45,34 @@ public final class PlatformHolder {
         service = null;
     }
 
+    /**
+     * Detects the current runtime by loader classes actually present. Used to
+     * pick the right implementation when several are visible (universal jar).
+     * Never initializes the probed classes.
+     */
+    public static Platform detectRuntime() {
+        ClassLoader loader = PlatformHolder.class.getClassLoader();
+        if (present(loader, "net.fabricmc.loader.api.FabricLoader")) {
+            return Platform.FABRIC;
+        }
+        if (present(loader, "net.neoforged.neoforge.common.NeoForge")) {
+            return Platform.NEOFORGE;
+        }
+        if (present(loader, "net.minecraftforge.fml.ModList")) {
+            return Platform.FORGE;
+        }
+        return Platform.UNKNOWN;
+    }
+
+    private static boolean present(ClassLoader loader, String name) {
+        try {
+            Class.forName(name, false, loader);
+            return true;
+        } catch (LinkageError | ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     private static PlatformService load() {
         List<PlatformService> found = new ArrayList<>();
         for (PlatformService candidate : ServiceLoader.load(PlatformService.class)) {
@@ -54,13 +82,19 @@ public final class PlatformHolder {
             MycelLog.warn("No PlatformService found; using UNKNOWN fallback (unit-test mode?)");
             return FallbackPlatformService.INSTANCE;
         }
-        if (found.size() > 1) {
-            MycelLog.warn("Multiple PlatformService implementations found; using the first: {}",
-                    found.get(0).getClass().getName());
+        if (found.size() == 1) {
+            return found.get(0);
         }
-        PlatformService chosen = found.get(0);
-        MycelLog.debug("Using platform service: {}", chosen.getClass().getName());
-        return chosen;
+        Platform runtime = detectRuntime();
+        for (PlatformService candidate : found) {
+            if (candidate.platform() == runtime) {
+                MycelLog.debug("Selected {} platform service for {}", candidate.getClass().getName(), runtime);
+                return candidate;
+            }
+        }
+        MycelLog.warn("No PlatformService matches runtime {}; using the first of {}",
+                runtime, found.get(0).getClass().getName());
+        return found.get(0);
     }
 
     /** Last-resort service so headless code paths fail gracefully instead of crashing. */

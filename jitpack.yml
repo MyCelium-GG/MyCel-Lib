@@ -1,10 +1,12 @@
 # JitPack build configuration.
-# Publishes Mycel's four library modules so mods can depend on them as:
-#   com.github.MyCelium-GG.MyCel:mycel-<fabric|forge|neoforge>-26.3:<tag>
-# The example modules are intentionally NOT published (demos, not API).
+# Publishes ONE universal artifact loadable on every loader:
+#   com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:<tag>
+# (The per-loader modules exist so each toolchain can compile, but only the
+# merged universal jar is published.)
 
 jdk:
   - openjdk25
 
 install:
-  - ./gradlew :common:publishToMavenLocal :fabric:publishToMavenLocal :forge:publishToMavenLocal :neoforge:publishToMavenLocal -q
+  - ./gradlew :universal:publishToMavenLocal -q
+

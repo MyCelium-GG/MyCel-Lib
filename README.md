@@ -45,8 +45,11 @@ Gameplay features do **not** belong here — they live in the small mods.
 
 ## Depending on Mycel
 
-Mycel is distributed through [JitPack](https://jitpack.io/#MyCelium-GG/MyCel-Lib).
-Use a release tag (e.g. `1.0.0`) — or any commit hash / `main-SNAPSHOT` for
+Mycel ships as **one universal jar** that loads on Fabric, Forge and
+NeoForge alike (like Collective's `fabric+forge+neo` bundle) — one download
+per Minecraft version, no per-loader artifacts to choose between. It is
+distributed through [JitPack](https://jitpack.io/#MyCelium-GG/MyCel-Lib).
+Use a release tag (e.g. `1.1.0`) — or any commit hash / `main-SNAPSHOT` for
 bleeding edge:
 
 ```groovy
@@ -57,16 +60,16 @@ repositories {
 
 dependencies {
     // Fabric (loom)
-    modImplementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-fabric-26.3:1.0.3'
+    modImplementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:1.1.0'
     // Forge (ForgeGradle userdev)
-    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-forge-26.3:1.0.3'
+    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:1.1.0'
     // NeoForge (ModDev)
-    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-neoforge-26.3:1.0.3'
+    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:1.1.0'
 }
 ```
 
-For local development, `./gradlew publishToMavenLocal` installs
-`my.celium.org:mycel-<loader>-26.3:1.0.3` into `~/.m2`.
+For local development, `./gradlew :universal:publishToMavenLocal` installs
+`my.celium.org:mycel-26.3:1.1.0` into `~/.m2`.
 
 ## Minimal integration
 

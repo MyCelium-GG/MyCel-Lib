@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
+import my.celium.org.platform.Platform;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -97,10 +98,20 @@ public final class MycelRegistry<T> {
                 if (found.isEmpty()) {
                     throw new IllegalStateException("No RegistryBridge on the classpath");
                 }
-                if (found.size() > 1) {
-                    MycelLog.warn("Multiple RegistryBridge implementations; using the first");
+                if (found.size() == 1) {
+                    bridge = found.get(0);
+                } else {
+                    // Universal jar: pick the bridge matching the detected runtime.
+                    Platform runtime = my.celium.org.internal.PlatformHolder.detectRuntime();
+                    bridge = found.stream()
+                            .filter(candidate -> candidate.platform() == runtime)
+                            .findFirst()
+                            .orElseGet(() -> {
+                                MycelLog.warn("No RegistryBridge matches runtime {}; using the first",
+                                        runtime);
+                                return found.get(0);
+                            });
                 }
-                bridge = found.get(0);
             }
             return bridge;
         }

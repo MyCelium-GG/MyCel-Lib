@@ -1,0 +1,74 @@
+plugins {
+    id 'multiloader-common'
+    id 'net.fabricmc.fabric-loom'
+}
+
+base {
+    archivesName = "${example_mod_id}-fabric-${minecraft_version}"
+}
+description = 'Example tiny QoL mod built on the Mycel library (Fabric).'
+
+configurations {
+    exampleCommonJava {
+        canBeResolved = true
+    }
+    exampleCommonResources {
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    // MC 26.1+ ships non-obfuscated: Loom 1.18+ needs no mappings layer.
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    // Depend on Mycel the way a real mod would (project dep stands in for the maven artifact).
+    implementation project(':fabric')
+    exampleCommonJava project(path: ':example-common', configuration: 'commonJava')
+    exampleCommonResources project(path: ':example-common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn(configurations.exampleCommonJava)
+    source(configurations.exampleCommonJava)
+}
+
+processResources {
+    dependsOn(configurations.exampleCommonResources)
+    from(configurations.exampleCommonResources)
+}
+
+loom {
+    runs {
+        client {
+            client()
+            setConfigName('Example Fabric Client')
+            ideConfigGenerated(true)
+            runDir('runs/client')
+        }
+        server {
+            server()
+            setConfigName('Example Fabric Server')
+            ideConfigGenerated(true)
+            runDir('runs/server')
+        }
+    }
+}
+
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'fabric')
+            }
+        }
+    }
+}

@@ -1,0 +1,10 @@
+# JitPack build configuration.
+# Publishes Mycel's four library modules so mods can depend on them as:
+#   com.github.MyCelium-GG.MyCel:mycel-<fabric|forge|neoforge>-26.3:<tag>
+# The example modules are intentionally NOT published (demos, not API).
+
+jdk:
+  - openjdk25
+
+install:
+  - ./gradlew :common:publishToMavenLocal :fabric:publishToMavenLocal :forge:publishToMavenLocal :neoforge:publishToMavenLocal -q

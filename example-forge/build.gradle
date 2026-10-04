@@ -1,0 +1,73 @@
+plugins {
+    id 'multiloader-common'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+}
+
+base {
+    archivesName = "${example_mod_name}-forge-${minecraft_version}"
+}
+description = 'Example tiny QoL mod built on the Mycel library (Forge).'
+
+configurations {
+    exampleCommonJava {
+        canBeResolved = true
+    }
+    exampleCommonResources {
+        canBeResolved = true
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${forge_version}")
+    // Depend on Mycel the way a real mod would (project dep stands in for the maven artifact).
+    implementation project(':forge')
+    exampleCommonJava project(path: ':example-common', configuration: 'commonJava')
+    exampleCommonResources project(path: ':example-common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn(configurations.exampleCommonJava)
+    source(configurations.exampleCommonJava)
+}
+
+processResources {
+    dependsOn(configurations.exampleCommonResources)
+    from(configurations.exampleCommonResources)
+}
+
+minecraft {
+    runs {
+        register('client') {
+            workingDir = layout.projectDirectory.dir('runs/client')
+        }
+        register('server') {
+            workingDir = layout.projectDirectory.dir('runs/server')
+            args '--nogui'
+        }
+    }
+}
+
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'forge')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'forge')
+            }
+        }
+    }
+}

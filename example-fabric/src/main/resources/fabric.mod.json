@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "${example_mod_id}",
+  "version": "${version}",
+  "name": "${example_mod_name}",
+  "description": "Tiny QoL example built on Mycel.",
+  "authors": [
+    "${mod_author}"
+  ],
+  "license": "${license}",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "mycelexample.fabric.ExampleFabric"
+    ],
+    "client": [
+      "mycelexample.fabric.ExampleFabricClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}",
+    "${mod_id}": "*"
+  }
+}

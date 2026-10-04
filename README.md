@@ -1,6 +1,9 @@
 # Mycel: shared core for the MyCelium ecosystem
 
 [![Release](https://jitpack.io/v/MyCelium-GG/MyCel-Lib.svg)](https://jitpack.io/#MyCelium-GG/MyCel-Lib)
+[![CI](https://github.com/MyCelium-GG/MyCel-Lib/actions/workflows/build.yml/badge.svg)](https://github.com/MyCelium-GG/MyCel-Lib/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/MyCelium-GG/MyCel-Lib)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/MyCelium-GG/MyCel-Lib)](https://github.com/MyCelium-GG/MyCel-Lib/commits/main)
 
 Mycel is the common infrastructure library for **MyCelium** quality-of-life Minecraft mods.
 It plays the same architectural role for MyCelium that Collective plays for Serilum's mods

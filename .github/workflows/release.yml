@@ -1,0 +1,32 @@
+name: release
+
+# Cut a release by pushing a version tag (e.g. 1.1.0).
+# Builds the universal jar and attaches it to a GitHub Release.
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Build universal jar
+        run: ./gradlew :universal:universalJar --no-daemon
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MC_VERSION=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2)
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Mycel $GITHUB_REF_NAME" \
+            --notes "Universal jar for Minecraft $MC_VERSION (Fabric + Forge + NeoForge). Requires Java 25." \
+            universal/build/libs/mycel-*.jar

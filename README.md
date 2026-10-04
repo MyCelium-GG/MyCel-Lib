@@ -60,11 +60,11 @@ repositories {
 
 dependencies {
     // Fabric (loom)
-    modImplementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:1.1.0'
+    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.1.0'
     // Forge (ForgeGradle userdev)
-    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:1.1.0'
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.1.0'
     // NeoForge (ModDev)
-    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:1.1.0'
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.1.0'
 }
 ```
 

@@ -21,7 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 /**
  * A tiny QoL mod built <em>only</em> on the Mycel API: one metadata block,
  * one config, one event subscription, one packet, one translation key.
- * Roughly sixty lines of feature code — everything repetitive (file IO,
+ * Roughly sixty lines of feature code - everything repetitive (file IO,
  * loader events, payload registration, screen, diagnostics) comes from Mycel.
  */
 public final class ExampleMod {

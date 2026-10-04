@@ -11,7 +11,7 @@ import my.celium.org.logging.MycelLog;
  *
  * <p>Mycel deliberately exposes only a handful of shared events (join, leave,
  * server lifecycle, entity replacement). Everything else should use the
- * loader's native event bus directly — the goal is to hide repetitive loader
+ * loader's native event bus directly - the goal is to hide repetitive loader
  * differences, not to reinvent Minecraft's event systems.
  *
  * <p>All events fire on the server thread. A throwing listener is logged and

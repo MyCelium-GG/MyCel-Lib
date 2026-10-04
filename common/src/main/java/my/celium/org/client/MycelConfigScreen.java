@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
  * inline validation, reset-all and save-on-done.
  *
  * <p>Built only from stable vanilla widgets ({@link Button}, {@link EditBox},
- * {@link StringWidget}) composed in {@link #init()} — no custom rendering, no
+ * {@link StringWidget}) composed in {@link #init()} - no custom rendering, no
  * third-party GUI library. Values are applied to the live config only when
  * every edit is valid and the player presses Done.
  */
@@ -240,7 +240,7 @@ public final class MycelConfigScreen extends Screen {
 
         private static String shortLabel(ConfigValue<?> value) {
             String key = value.key().replace('_', ' ');
-            String hint = value.description().isEmpty() ? "" : " — " + value.description();
+            String hint = value.description().isEmpty() ? "" : " - " + value.description();
             String text = key + hint;
             return text.length() > 44 ? text.substring(0, 44) + "…" : text;
         }

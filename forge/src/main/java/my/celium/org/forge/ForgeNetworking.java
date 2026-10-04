@@ -29,8 +29,8 @@ import net.minecraftforge.network.payload.PayloadProtocol;
  *
  * <p>Mycel owns one shared play channel ({@code mycel}, protocol v1) and
  * registers every {@link MycelNetwork} definition on it. The channel is built
- * during {@code FMLCommonSetupEvent} — after every mod constructor ran, so
- * dependent mods' packets are included — and handlers are scheduled onto the
+ * during {@code FMLCommonSetupEvent} - after every mod constructor ran, so
+ * dependent mods' packets are included - and handlers are scheduled onto the
  * game thread via {@code enqueueWork}. Handler lambdas are server-safe;
  * client-only behaviour lives in the mod-provided handler.
  */

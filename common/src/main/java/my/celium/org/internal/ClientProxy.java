@@ -8,7 +8,7 @@ import my.celium.org.logging.MycelLog;
  * Internal bridge to client-only code.
  *
  * <p>Common and server code must never reference {@code net.minecraft.client}
- * classes directly — doing so would crash dedicated servers at class-load
+ * classes directly - doing so would crash dedicated servers at class-load
  * time. This proxy reaches the client screen factory reflectively and only
  * when a client is actually present, so servers never load those classes.
  */

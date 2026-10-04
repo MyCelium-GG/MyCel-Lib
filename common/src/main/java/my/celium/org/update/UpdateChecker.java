@@ -26,7 +26,7 @@ import my.celium.org.metadata.ModMetadata;
  *   <li>never blocks the game thread or startup (everything runs on Mycel's
  *       shared background pool);</li>
  *   <li>strict timeouts (8s connect, 12s total) and a 256&nbsp;KiB response cap;</li>
- *   <li>HTTPS only — any other scheme is refused;</li>
+ *   <li>HTTPS only - any other scheme is refused;</li>
  *   <li>results cached per mod (re-checked at most once per 6 hours);</li>
  *   <li>at most one chatty line per mod with an update; everything else is debug;</li>
  *   <li>any failure (DNS, TLS, HTTP error, malformed JSON) degrades to silence.</li>
@@ -38,7 +38,7 @@ import my.celium.org.metadata.ModMetadata;
  * <p>A mod opts in by setting {@code updateUrl} in its {@link ModMetadata} and
  * opts out by leaving it {@code null}. The global {@code mycel.json} flag
  * {@code enableUpdateChecker} disables all checks. No update service is
- * hardcoded — any HTTPS endpoint serving the shape above works.
+ * hardcoded - any HTTPS endpoint serving the shape above works.
  */
 public final class UpdateChecker {
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(8);

@@ -7,7 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 /**
  * Client-only entry points for Mycel's config UI.
  *
- * <p><b>Never reference this class from common/server code</b> — it (transitively)
+ * <p><b>Never reference this class from common/server code</b> - it (transitively)
  * loads {@code net.minecraft.client} classes, which do not exist on dedicated
  * servers. Server-safe callers go through {@code Mycel.openConfigScreen(...)},
  * which uses a reflection-guarded proxy. Loader <em>client</em> entrypoints may

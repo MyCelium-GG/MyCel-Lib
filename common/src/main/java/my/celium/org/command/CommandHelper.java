@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Small helpers around vanilla Brigadier. Mycel does not replace Minecraft's
- * command system — these cover the three lines every mod rewrites.
+ * command system - these cover the three lines every mod rewrites.
  */
 public final class CommandHelper {
     private CommandHelper() {

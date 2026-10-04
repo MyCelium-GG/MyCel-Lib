@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Not public API. Exactly one cached pool exists no matter how many mods
  * use Mycel; threads are daemons and die after 60s idle. Background work must
- * never touch world state — schedule the game-thread part with
+ * never touch world state - schedule the game-thread part with
  * {@code MycelScheduler} instead.
  */
 public final class MycelExecutors {

@@ -8,7 +8,7 @@ import net.minecraft.network.chat.MutableComponent;
 
 /**
  * Small helpers around {@link Component}. Mycel does not rebuild the text
- * system — these just remove qualifier noise.
+ * system - these just remove qualifier noise.
  */
 public final class TextUtil {
     private TextUtil() {

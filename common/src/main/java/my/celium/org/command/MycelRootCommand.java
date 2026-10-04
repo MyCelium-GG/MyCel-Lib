@@ -19,9 +19,9 @@ import net.minecraft.commands.Commands;
  * module through its native command event:
  *
  * <ul>
- *   <li>{@code /mycel info} — library, platform and environment summary;</li>
- *   <li>{@code /mycel mods} — every mod registered with Mycel;</li>
- *   <li>{@code /mycel reload <modid>} — re-reads that mod's config file (op level 2),
+ *   <li>{@code /mycel info} - library, platform and environment summary;</li>
+ *   <li>{@code /mycel mods} - every mod registered with Mycel;</li>
+ *   <li>{@code /mycel reload <modid>} - re-reads that mod's config file (op level 2),
  *       with tab-completion over registered mod ids.</li>
  * </ul>
  */

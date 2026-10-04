@@ -16,7 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
  * {@code "mymod.config.enabled"}. Mods ship their own {@code en_us.json} (and
  * friends) under {@code assets/<modid>/lang/} as usual; these helpers only
  * remove key-building boilerplate and guarantee a missing translation can
- * never crash the game — it falls back to readable text plus one debug line.
+ * never crash the game - it falls back to readable text plus one debug line.
  *
  * <p>Remote translation downloading is intentionally not implemented: it would
  * add network, cache-invalidation and trust concerns to a core library. If it

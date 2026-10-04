@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.Block;
  * <p>Names must be lowercase {@code [a-z0-9_/.-]} paths. Registration timing is
  * owned by the loader bridge: call {@code register} during mod construction /
  * entrypoint execution. Resolving ({@link DeferredEntry#get()}) before the
- * loader creates the object throws — read entries lazily (in handlers, not in
+ * loader creates the object throws - read entries lazily (in handlers, not in
  * static initialisers).
  */
 public final class MycelRegistry<T> {

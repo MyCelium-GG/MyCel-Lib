@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
  *
  * <p><b>Never referenced from server code paths.</b> It is only invoked from
  * the clientbound packet handler, which never runs on a dedicated server, and
- * classes are resolved lazily — so the mere presence of this file in the
+ * classes are resolved lazily - so the mere presence of this file in the
  * common sources is server-safe. This is the same isolation rule Mycel
  * itself follows for {@code my.celium.org.client}.
  */

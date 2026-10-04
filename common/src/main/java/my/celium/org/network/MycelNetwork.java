@@ -37,7 +37,7 @@ import net.minecraft.world.level.ChunkPos;
  * the game thread.
  *
  * <p>On Fabric, packets registered after Mycel's entrypoint ran need one extra
- * {@code FabricNetworking.flush()} call from the mod's entrypoint — see the
+ * {@code FabricNetworking.flush()} call from the mod's entrypoint - see the
  * example mod. On Forge/NeoForge the payload event always fires after every
  * mod constructor, so nothing extra is needed.
  */
@@ -119,7 +119,7 @@ public final class MycelNetwork {
     }
 
     /**
-     * Sends a serverbound packet. Must only be called from client code —
+     * Sends a serverbound packet. Must only be called from client code:
      * the method references client classes and is never invoked on a server.
      */
     public static <T extends CustomPacketPayload> void sendToServer(PacketDefinition<T> definition, T payload) {

@@ -22,7 +22,7 @@ import my.celium.org.update.UpdateChecker;
 import net.minecraft.client.gui.screens.Screen;
 
 /**
- * Mycel — the shared core library for the MyCelium ecosystem.
+ * Mycel - the shared core library for the MyCelium ecosystem.
  *
  * <p>A dependent mod's entire integration looks like this:
  * <pre>{@code
@@ -121,7 +121,7 @@ public final class Mycel {
         return Collections.unmodifiableList(new ArrayList<>(MODS.values()));
     }
 
-    /** Starts a configuration for {@code metadata} (10–30 lines for a typical mod). */
+    /** Starts a configuration for {@code metadata} (10-30 lines for a typical mod). */
     public static ConfigBuilder config(ModMetadata metadata) {
         return new ConfigBuilder(Objects.requireNonNull(metadata, "metadata"));
     }
@@ -194,7 +194,7 @@ public final class Mycel {
 
     /**
      * Creates the config screen for {@code modId} (client only). Returns
-     * {@code null} on dedicated servers or when the mod has no config — so it
+     * {@code null} on dedicated servers or when the mod has no config - so it
      * is always safe to call; check the result for {@code null}.
      */
     public static Screen openConfigScreen(Screen parent, String modId) {

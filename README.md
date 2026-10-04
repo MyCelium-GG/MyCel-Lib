@@ -1,4 +1,4 @@
-# Mycel — shared core for the MyCelium ecosystem
+# Mycel: shared core for the MyCelium ecosystem
 
 [![Release](https://jitpack.io/v/MyCelium-GG/MyCel-Lib.svg)](https://jitpack.io/#MyCelium-GG/MyCel-Lib)
 
@@ -12,7 +12,7 @@ independent, original implementation: no Collective code, names, or assets are u
 | | |
 |---|---|
 | Package | `my.celium.org` |
-| Maven | `my.celium.org:mycel-<loader>-<mc>:1.0.3` |
+| Maven | `com.github.MyCelium-GG:MyCel-Lib:1.1.0` (universal, via JitPack) |
 | Minecraft | **26.3** |
 | Java | **25** (Gradle daemon and compiler toolchain) |
 | Loaders | Fabric, Forge, NeoForge (all first-class, one unified `./gradlew build`) |
@@ -22,35 +22,34 @@ independent, original implementation: no Collective code, names, or assets are u
 
 ## What Mycel gives a dependent mod
 
-- **Bootstrap** — `Mycel.initialize()` (idempotent), `Mycel.registerMod(metadata)`
-- **Configuration** — typed values, ranges, categories, JSON files, migration, change
-  listeners, reload — in ~10 lines
-- **Config screen** — reusable client UI with validation, reset, category tabs
-- **Utilities** — cohesive `BlockUtil`, `ItemUtil`, `InventoryUtil`, `PlayerUtil`,
+- **Bootstrap**: `Mycel.initialize()` (idempotent), `Mycel.registerMod(metadata)`
+- **Configuration**: typed values, ranges, categories, JSON files, migration, change
+  listeners, reload. All in about ten lines.
+- **Config screen**: reusable client UI with validation, reset, category tabs
+- **Utilities**: cohesive `BlockUtil`, `ItemUtil`, `InventoryUtil`, `PlayerUtil`,
   `EntityUtil`, `WorldUtil`, `TextUtil` (no giant `Utils` class)
-- **Entity replacement** — `EntityReplacer` with position/equipment/health/passengers/leash
-  preservation plus an event hook
-- **Events** — join, leave, server lifecycle, entity-replaced (native loader buses
+- **Entity replacement**: `EntityReplacer` preserving position, equipment,
+  health, passengers, leash and more, plus an event hook
+- **Events**: join, leave, server lifecycle, entity-replaced (native loader buses
   for everything else, by design)
-- **Networking** — vanilla-payload packets, one API for all loaders, game-thread handlers
-- **Translations** — namespaced keys, never-crash fallback
-- **Update checker** — opt-in, async, cached, HTTPS-only, silent on failure
-- **Platform abstraction** — loader/version/mod-detection/config-dir behind one service
-- **Scheduling** — server-thread `runLater`/`runEvery`, background `runAsync`
-- **Registries** — deferred item/block/entity-type registration on every loader
-- **Commands** — Brigadier helpers plus a built-in `/mycel` diagnostics command
-- **Diagnostics** — versions, platform, registered mods, config state
+- **Networking**: vanilla-payload packets, one API for all loaders, game-thread handlers
+- **Translations**: namespaced keys, never-crash fallback
+- **Update checker**: opt-in, async, cached, HTTPS-only, silent on failure
+- **Platform abstraction**: loader, version, mod detection and config dir behind one service
+- **Scheduling**: server-thread `runLater`/`runEvery`, background `runAsync`
+- **Registries**: deferred item/block/entity-type registration on every loader
+- **Commands**: Brigadier helpers plus a built-in `/mycel` diagnostics command
+- **Diagnostics**: versions, platform, registered mods, config state
 
-Gameplay features do **not** belong here — they live in the small mods.
+Gameplay features do **not** belong here. They live in the small mods.
 
 ## Depending on Mycel
 
 Mycel ships as **one universal jar** that loads on Fabric, Forge and
-NeoForge alike (like Collective's `fabric+forge+neo` bundle) — one download
+NeoForge alike (like Collective's `fabric+forge+neo` bundle): one download
 per Minecraft version, no per-loader artifacts to choose between. It is
 distributed through [JitPack](https://jitpack.io/#MyCelium-GG/MyCel-Lib).
-Use a release tag (e.g. `1.1.0`) — or any commit hash / `main-SNAPSHOT` for
-bleeding edge:
+Use a release tag (e.g. `1.1.0`), a commit hash, or `main-SNAPSHOT` for bleeding edge:
 
 ```groovy
 repositories {
@@ -107,7 +106,7 @@ Reload live with `CONFIG.reload()` or `/mycel reload mymod`.
 ```java
 public record PingPacket(String text) implements CustomPacketPayload {
     public static final Type<PingPacket> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath("mymod", "ping"));
+            new Type<>(Identifier.fromNamespaceAndPath("mymod", "ping"));
     public static final StreamCodec<FriendlyByteBuf, PingPacket> CODEC =
             StreamCodec.composite(ByteBufCodecs.STRING_UTF8, PingPacket::text, PingPacket::new);
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
@@ -153,7 +152,7 @@ example-*/       MycelExample: join-greeting mod proving the whole API
 `PlatformService`, `RegistryBridge` (both `ServiceLoader`-discovered) and the
 loader event/payload wiring, which iterates common registries. Client-only code
 lives in `my.celium.org.client` and is only ever touched from client entrypoints
-or through a reflection-guarded proxy — dedicated servers never load it.
+or through a reflection-guarded proxy. Dedicated servers never load client code.
 
 ## Building
 
@@ -171,7 +170,7 @@ for client and dedicated-server smoke tests. Accept the Minecraft EULA in the
 respective `runs/*/eula.txt` first.
 
 First builds download and process Minecraft (~1GB caches, decompile takes
-several minutes) and peak around 6–8GB RAM; later builds are incremental.
+several minutes) and peak around 6-8GB RAM; later builds are incremental.
 
 ## Deliberate non-goals
 
@@ -183,5 +182,6 @@ several minutes) and peak around 6–8GB RAM; later builds are incremental.
 
 ## Versioning
 
-Semantic (`MAJOR.MINOR.PATCH`); breaking API changes bump major. Artifacts carry the
-Minecraft version (`mycel-fabric-26.3`). `Built-On-Minecraft` is in every manifest.
+Semantic (`MAJOR.MINOR.PATCH`); breaking API changes bump major. The universal
+artifact carries the Minecraft version (`mycel-26.3`). `Built-On-Minecraft`
+is in every manifest.

@@ -4,8 +4,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Context for a received packet. Handlers always run on the game thread —
- * the loader wiring schedules them there — so handlers may touch game state.
+ * Context for a received packet. Handlers always run on the game thread:
+ * the loader wiring schedules them there - so handlers may touch game state.
  */
 public final class PacketContext {
     private final PacketDirection direction;

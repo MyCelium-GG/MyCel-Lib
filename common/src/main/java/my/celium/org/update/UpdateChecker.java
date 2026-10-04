@@ -110,7 +110,7 @@ public final class UpdateChecker {
         HttpRequest request = HttpRequest.newBuilder(uri)
                 .timeout(REQUEST_TIMEOUT)
                 .header("Accept", "application/json")
-                .header("User-Agent", "Mycel/1.0.0 (update-check)")
+                .header("User-Agent", "Mycel/" + my.celium.org.Mycel.getVersion() + " (update-check)")
                 .GET()
                 .build();
         HttpResponse<byte[]> response =

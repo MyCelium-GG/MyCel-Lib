@@ -12,7 +12,7 @@ independent, original implementation: no Collective code, names, or assets are u
 | | |
 |---|---|
 | Package | `my.celium.org` |
-| Maven | `my.celium.org:mycel-<loader>-<mc>:1.0.1` |
+| Maven | `my.celium.org:mycel-<loader>-<mc>:1.0.3` |
 | Minecraft | **26.3** |
 | Java | **25** (Gradle daemon and compiler toolchain) |
 | Loaders | Fabric, Forge, NeoForge (all first-class, one unified `./gradlew build`) |
@@ -57,16 +57,16 @@ repositories {
 
 dependencies {
     // Fabric (loom)
-    modImplementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-fabric-26.3:1.0.1'
+    modImplementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-fabric-26.3:1.0.3'
     // Forge (ForgeGradle userdev)
-    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-forge-26.3:1.0.1'
+    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-forge-26.3:1.0.3'
     // NeoForge (ModDev)
-    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-neoforge-26.3:1.0.1'
+    // implementation 'com.github.MyCelium-GG.MyCel-Lib:mycel-neoforge-26.3:1.0.3'
 }
 ```
 
 For local development, `./gradlew publishToMavenLocal` installs
-`my.celium.org:mycel-<loader>-26.3:1.0.1` into `~/.m2`.
+`my.celium.org:mycel-<loader>-26.3:1.0.3` into `~/.m2`.
 
 ## Minimal integration
 

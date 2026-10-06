@@ -3,10 +3,16 @@
 #   com.github.MyCelium-GG.MyCel-Lib:mycel-26.3:<tag>
 # (The per-loader modules exist so each toolchain can compile, but only the
 # merged universal jar is published.)
+#
+# NOTE: Gradle is installed via SDKMAN and invoked directly instead of
+# ./gradlew, because JitPack's current image fails to open the wrapper jar
+# (valid jar, byte-identical to the one that built 1.1.0). Version must match
+# gradle/wrapper/gradle-wrapper.properties.
 
 jdk:
   - openjdk25
 
 install:
-  - ./gradlew :universal:publishToMavenLocal -q
+  - sdk install gradle 9.7.1
+  - gradle :universal:publishToMavenLocal -q
 

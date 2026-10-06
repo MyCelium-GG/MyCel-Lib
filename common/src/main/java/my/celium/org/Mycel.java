@@ -50,7 +50,7 @@ public final class Mycel {
     public static final String MOD_ID = "mycel";
 
     /** Mycel's version. Must match {@code gradle.properties}. */
-    public static final String VERSION = "1.2.0";
+    public static final String VERSION = "1.2.1";
 
     /** Mycel's own metadata (registered automatically on {@link #initialize()}). */
     public static final ModMetadata METADATA =

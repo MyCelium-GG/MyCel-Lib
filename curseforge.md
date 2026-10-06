@@ -19,7 +19,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.2.0'
+    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.2.1'
 }
 ```
 

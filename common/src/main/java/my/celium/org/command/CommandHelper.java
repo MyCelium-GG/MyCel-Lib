@@ -44,8 +44,16 @@ public final class CommandHelper {
         source.sendSuccess(() -> message, false);
     }
 
-    /** Sends a grey informational message. */
+    /**
+     * Sends an informational message. The component is delivered as-is so hex
+     * colors and hover text survive (older builds flattened everything to grey).
+     */
     public static void info(CommandSourceStack source, Component message) {
-        source.sendSuccess(() -> my.celium.org.util.TextUtil.gray(message.getString()), false);
+        source.sendSuccess(() -> message, false);
+    }
+
+    /** Sends a styled failure message (still a "success" send so it shows in chat). */
+    public static void failure(CommandSourceStack source, Component message) {
+        source.sendSuccess(() -> message, false);
     }
 }

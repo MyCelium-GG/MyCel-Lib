@@ -102,7 +102,8 @@ More values: `intValue(key, def, min, max, desc)`, `longValue`, `doubleValue`,
 `stringValue`, `enumValue(key, Type.class, def, desc)`, `stringListValue`.
 Group with `builder.category("tweaks")` / `builder.root()`.
 Version configs with `builder.schemaVersion(2)` + `builder.migrate(1, json -> …)`.
-Reload live with `CONFIG.reload()` or `/mycel reload mymod`.
+Reload live with `CONFIG.reload()`, `/mycel reload mymod`, or edit live with
+`/mycel set mymod <key> <value>` / `/mycel get mymod [key]` / `/mycel reset mymod [key]`.
 
 ### Networking
 
@@ -139,7 +140,21 @@ Screen screen = Mycel.openConfigScreen(parentScreen, "mymod");
 
 ### `/mycel` command
 
-Registered automatically on every loader: `info`, `mods`, `reload <modid>`.
+Registered automatically on every loader. All output uses the shared hex
+palette (`TextUtil`: teal/violet/soft red-green-amber) behind a `[Mycel]` prefix:
+
+- `help` — usage overview
+- `info` — library, loader and MC versions
+- `mods` — every mod registered with Mycel
+- `get <modid> [key]` — print one or all config values (anyone)
+- `set <modid> <key> <value>` — change + save a config value live (op level 2).
+  Validated exactly like the config screen; booleans accept `true/false`
+  (`1/0`, `yes/no`, `on/off`), enums are case-insensitive, lists are
+  comma-separated. Keys are `key` or `category.key`.
+- `reset <modid> [key]` — restore one or all values to defaults (op level 2)
+- `reload <modid>` — re-read the config file from disk (op level 2)
+
+Tab-completion covers mod ids, config keys and (for booleans/enums) values.
 
 ## Project layout
 

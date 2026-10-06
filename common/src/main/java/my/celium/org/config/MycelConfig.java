@@ -79,6 +79,16 @@ public final class MycelConfig {
         return Collections.unmodifiableList(result);
     }
 
+    /**
+     * Finds a value by path ({@code "key"} or {@code "category.key"}).
+     *
+     * @return the value, or {@code null} when nothing (or ambiguous bare key) matches
+     * @see ConfigStrings#find(MycelConfig, String)
+     */
+    public ConfigValue<?> find(String path) {
+        return ConfigStrings.find(this, path);
+    }
+
     public Path file() {
         return file;
     }

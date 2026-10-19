@@ -12,37 +12,37 @@ import net.minecraft.network.chat.TextColor;
  * Small helpers around {@link Component}. Mycel does not rebuild the text
  * system - these just remove qualifier noise.
  *
- * <p>The palette below is the shared Mycel look: soft hex tones instead of the
- * harsh vanilla {@link ChatFormatting} primaries. Legacy helpers
- * ({@link #green(String)}, {@link #red(String)}, {@link #gray(String)},
- * {@link #gold(String)}) keep their signatures for compatibility but now render
- * through the matching hex tone, so existing callers get the cleaner look
- * without changing code.
+ * <p>The palette below is the shared Mycel look, taken from the MyCelium wiki's
+ * dark theme (chat is always drawn on a dark backdrop): wiki red for the brand,
+ * a lighter red for names and keys, the wiki's text and muted greys for body
+ * copy. Legacy helpers ({@link #green(String)}, {@link #red(String)},
+ * {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
+ * render through the matching tone.
  */
 public final class TextUtil {
     private TextUtil() {
     }
 
     // ------------------------------------------------------------ palette
-    // Mycelium-inspired, high-contrast-on-dark-chat hex palette.
-    /** Teal - primary brand / headers. */
-    public static final int PRIMARY = 0x5EEAD4;
-    /** Violet - accent / highlights, mod names. */
-    public static final int ACCENT = 0xA78BFA;
+    // Wiki dark-theme tokens (style.css), checked for contrast on the chat backdrop.
+    /** Wiki red ({@code --accent}) - brand, headers. */
+    public static final int PRIMARY = 0xEF5350;
+    /** Light red - mod names, config keys. */
+    public static final int ACCENT = 0xFF8A80;
     /** Soft green - success. */
-    public static final int SUCCESS = 0x4ADE80;
-    /** Soft red - errors. */
-    public static final int ERROR = 0xF87171;
+    public static final int SUCCESS = 0x81C784;
+    /** Bright red - errors. Always paired with a cross so it never reads as the brand. */
+    public static final int ERROR = 0xFF5252;
     /** Amber - warnings / gold. */
-    public static final int WARN = 0xFBBF24;
-    /** Light blue - informational values. */
-    public static final int INFO = 0x93C5FD;
-    /** Muted grey - secondary text. */
-    public static final int MUTED = 0x9CA3AF;
-    /** Dark grey - brackets, dividers. */
-    public static final int FAINT = 0x4B5563;
-    /** Near-white - body text. */
-    public static final int BODY = 0xE5E7EB;
+    public static final int WARN = 0xFFB74D;
+    /** Pale rose - values, commands. */
+    public static final int INFO = 0xFFCDD2;
+    /** Wiki {@code --muted} - secondary text. */
+    public static final int MUTED = 0xA3A3A3;
+    /** Brackets, bullets, dividers. Lighter than the wiki border so it survives the chat backdrop. */
+    public static final int FAINT = 0x7A7A7A;
+    /** Wiki {@code --text} - body text. */
+    public static final int BODY = 0xE6E6E6;
 
     public static MutableComponent literal(String text) {
         return Component.literal(text);
@@ -79,12 +79,12 @@ public final class TextUtil {
             clean = clean.substring(1);
         }
         if (clean.length() != 6 || !clean.matches("[0-9a-fA-F]{6}")) {
-            throw new IllegalArgumentException("Expected hex color like #5EEAD4, got '" + hexCode + "'");
+            throw new IllegalArgumentException("Expected hex color like #EF5350, got '" + hexCode + "'");
         }
         return Integer.parseInt(clean, 16);
     }
 
-    /** Hex-colored literal, e.g. {@code hex("hi", "#5EEAD4")}. */
+    /** Hex-colored literal, e.g. {@code hex("hi", "#EF5350")}. */
     public static MutableComponent hex(String text, String hexCode) {
         return hex(text, parseHex(hexCode));
     }
@@ -151,17 +151,17 @@ public final class TextUtil {
     }
 
     // ------------------------------------------------------------ message kit
-    // One consistent voice for every /mycel line: "[Mycel] message".
+    // One voice for every /mycel reply. Single lines carry the "Mycel ›" tag;
+    // multi-line replies tag only their header and indent the rows below it.
 
-    /** {@code [Mycel]} prefix: faint brackets + primary brand name. */
+    /** {@code Mycel › } tag: bold wiki-red brand + faint chevron. */
     public static MutableComponent prefix() {
         return empty()
-                .append(faint("["))
-                .append(primary("Mycel"))
-                .append(faint("] "));
+                .append(primary("Mycel").withStyle(style -> style.withBold(true)))
+                .append(faint(" \u203A "));
     }
 
-    /** Prepends the {@code [Mycel]} prefix to {@code message}. */
+    /** Prepends the {@code Mycel ›} tag to {@code message}. */
     public static MutableComponent prefixed(Component message) {
         return empty().append(prefix()).append(message);
     }
@@ -176,9 +176,9 @@ public final class TextUtil {
         return prefixed(empty().append(error("\u2718 ")).append(body(text)));
     }
 
-    /** Info line: muted bullet + message. */
+    /** Info line: plain message after the tag. */
     public static MutableComponent note(String text) {
-        return prefixed(empty().append(faint("\u2022 ")).append(body(text)));
+        return prefixed(body(text));
     }
 
     /** Warning line: amber bang + message. */
@@ -186,17 +186,29 @@ public final class TextUtil {
         return prefixed(empty().append(warn("! ")).append(body(text)));
     }
 
-    /** Header line: primary title centred between faint rules. */
+    /** Header line opening a multi-line reply: tag + bright title. */
     public static MutableComponent header(String title) {
-        return prefixed(empty()
-                .append(faint("\u2014 "))
-                .append(primary(title))
-                .append(faint(" \u2014")));
+        return prefixed(body(title).withStyle(style -> style.withBold(true)));
+    }
+
+    /** Header line with a muted suffix, e.g. {@code header("Mods", "3")}. */
+    public static MutableComponent header(String title, String detail) {
+        return header(title).append(muted("  " + detail));
+    }
+
+    /** Indented row under a {@link #header}: faint bullet + content, no tag. */
+    public static MutableComponent item(Component content) {
+        return empty().append(faint("  \u2022 ")).append(content);
+    }
+
+    /** Indented continuation line (descriptions, hints) under an {@link #item}. */
+    public static MutableComponent detail(String text) {
+        return empty().append(faint("     ")).append(muted(text));
     }
 
     /** Faint divider used between sections. */
     public static MutableComponent divider() {
-        return prefixed(faint("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+        return faint("  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
     }
 
     /** {@code key}: value pair with accent key and bright value. */

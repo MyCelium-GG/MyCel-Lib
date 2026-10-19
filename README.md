@@ -141,7 +141,9 @@ Screen screen = Mycel.openConfigScreen(parentScreen, "mymod");
 ### `/mycel` command
 
 Registered automatically on every loader. All output uses the shared hex
-palette (`TextUtil`: teal/violet/soft red-green-amber) behind a `[Mycel]` prefix:
+palette in `TextUtil`, matched to the MyCelium wiki (wiki red brand, light-red
+keys, soft green/amber/red status marks). Single replies start with a bold
+`Mycel ›` tag; lists tag only their header and indent the rows below it:
 
 - `help` — usage overview
 - `info` — library, loader and MC versions

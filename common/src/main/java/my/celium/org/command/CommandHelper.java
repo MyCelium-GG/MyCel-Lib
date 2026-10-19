@@ -52,8 +52,12 @@ public final class CommandHelper {
         source.sendSuccess(() -> message, false);
     }
 
-    /** Sends a styled failure message (still a "success" send so it shows in chat). */
+    /**
+     * Sends a failure message. Goes through vanilla's failure channel, so it
+     * still shows when the {@code sendCommandFeedback} game rule is off; parts
+     * without their own color are drawn red by vanilla.
+     */
     public static void failure(CommandSourceStack source, Component message) {
-        source.sendSuccess(() -> message, false);
+        source.sendFailure(message);
     }
 }

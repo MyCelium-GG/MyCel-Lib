@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import my.celium.org.Mycel;
+import my.celium.org.config.ConfigStrings;
+import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.internal.PlatformHolder;
 import my.celium.org.metadata.ModMetadata;
 import my.celium.org.platform.PlatformService;
 import my.celium.org.util.TextUtil;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
@@ -40,46 +41,38 @@ public final class MycelDiagnostics {
     /** Styled header for {@code /mycel info}: brand + platform + versions. */
     public static MutableComponent headerLine() {
         PlatformService platform = PlatformHolder.get();
-        return TextUtil.prefixed(TextUtil.empty()
-                .append(TextUtil.primary("Mycel " + Mycel.getVersion()))
-                .append(TextUtil.muted(" on " + platform.platform().displayName()
-                        + "  \u2022  loader " + platform.loaderVersion()
-                        + "  \u2022  MC " + platform.minecraftVersion())));
+        return TextUtil.header("Mycel " + Mycel.getVersion(),
+                platform.platform().displayName()
+                        + " \u00B7 loader " + platform.loaderVersion()
+                        + " \u00B7 MC " + platform.minecraftVersion());
     }
 
-    /** Styled one-liner for a single registered mod. */
+    /** Styled row for a single registered mod, for use under a header. */
     public static MutableComponent modLine(ModMetadata mod) {
         MycelConfig config = Mycel.getConfig(mod.id());
         String configState = config == null ? "no config" : config.values().size() + " values";
-        MutableComponent line = TextUtil.prefixed(TextUtil.empty()
-                .append(TextUtil.faint("\u2022 "))
-                .append(TextUtil.accent(mod.id()))
-                .append(TextUtil.muted(" " + mod.version() + "  [" + configState + "]")));
+        MutableComponent row = TextUtil.empty()
+                .append(TextUtil.accent(mod.name()))
+                .append(TextUtil.body(" " + mod.version()))
+                .append(TextUtil.muted("  " + mod.id() + " \u00B7 " + configState));
         if (!Mycel.isEnabled(mod.id())) {
-            line.append(TextUtil.empty().append(TextUtil.muted("  ")).append(TextUtil.warn("[disabled]")));
+            row.append(TextUtil.warn("  disabled"));
         }
-        return line;
+        return TextUtil.item(row);
     }
 
-    /** Styled detail for one config value: path, current, default, constraint. */
-    public static MutableComponent configLine(my.celium.org.config.ConfigValue<?> value) {
-        String path = my.celium.org.config.ConfigStrings.pathOf(value);
-        String current = my.celium.org.config.ConfigStrings.valueToString(value);
-        String constraint = my.celium.org.config.ConfigStrings.constraintHint(value);
+    /** Styled row for one config value: path, current, constraint, default when changed. */
+    public static MutableComponent configLine(ConfigValue<?> value) {
+        String current = ConfigStrings.valueToString(value);
         boolean isDefault = value.isDefault();
-        MutableComponent line = TextUtil.prefixed(TextUtil.empty()
-                .append(TextUtil.faint("\u2022 "))
-                .append(TextUtil.accent(path))
-                .append(TextUtil.muted(" = "))
-                .append(isDefault ? TextUtil.body(current) : TextUtil.infoText(current)));
-        line.append(TextUtil.muted("  [" + constraint + "]"));
+        MutableComponent row = TextUtil.empty()
+                .append(TextUtil.accent(ConfigStrings.pathOf(value)))
+                .append(TextUtil.faint(" = "))
+                .append(isDefault ? TextUtil.body(current) : TextUtil.infoText(current))
+                .append(TextUtil.muted("  " + ConfigStrings.constraintHint(value)));
         if (!isDefault) {
-            line.append(TextUtil.muted("  (default: "
-                    + my.celium.org.config.ConfigStrings.defaultToString(value) + ")"));
+            row.append(TextUtil.muted("  (default " + ConfigStrings.defaultToString(value) + ")"));
         }
-        if (!value.description().isBlank()) {
-            line.append(Component.empty());
-        }
-        return line;
+        return TextUtil.item(row);
     }
 }

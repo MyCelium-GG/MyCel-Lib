@@ -57,6 +57,7 @@ public final class Mycel {
             ModMetadata.builder(MOD_ID, "Mycel", VERSION)
                     .website("https://github.com/MyCelium-GG/MyCel-Lib")
                     .author("MyCelium")
+                    .updateUrl("https://wiki.mycelium-gg.org/updates/mycel.json")
                     .build();
 
     private static volatile boolean initialized;
@@ -78,7 +79,6 @@ public final class Mycel {
             MycelLog.debug("Mycel.initialize() called twice; ignoring");
             return;
         }
-        initialized = true;
         PlatformService platform = PlatformHolder.get();
         registerMod(METADATA);
         ConfigBuilder global = new ConfigBuilder(METADATA);
@@ -88,6 +88,12 @@ public final class Mycel {
         updateCheckerFlag = flag;
         UpdateChecker.setGloballyEnabled(flag.get());
         flag.onChange(UpdateChecker::setGloballyEnabled);
+        // Only now is the user's enableUpdateChecker choice known, so mods that
+        // registered before initialize() get their check here instead of never.
+        initialized = true;
+        for (ModMetadata mod : MODS.values()) {
+            UpdateChecker.check(mod);
+        }
         MycelLog.info("Mycel {} initialized on {} (loader {}, MC {})", VERSION,
                 platform.platform().displayName(), platform.loaderVersion(), platform.minecraftVersion());
     }

@@ -1,5 +1,6 @@
 package my.celium.org.update;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -45,7 +45,11 @@ public final class UpdateChecker {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(12);
     private static final int MAX_BYTES = 256 * 1024;
     private static final long CACHE_MILLIS = 6L * 60 * 60 * 1000;
-    private static final Gson GSON = new Gson();
+    private static final HttpClient CLIENT = HttpClient.newBuilder()
+            .connectTimeout(CONNECT_TIMEOUT)
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .executor(MycelExecutors.async())
+            .build();
 
     private static final Map<String, UpdateResult> CACHE = new ConcurrentHashMap<>();
     private static volatile boolean globallyEnabled = true;
@@ -90,11 +94,9 @@ public final class UpdateChecker {
 
     private static void announceIfNeeded(UpdateResult result) {
         if (result.updateAvailable()) {
-            String target = result.url() == null
-                    ? result.latestVersion()
-                    : result.latestVersion() + " (" + result.url() + ")";
             MycelLog.infoMod(result.modId(), "Update available: {} -> {}. See {}",
-                    result.currentVersion(), target, result.url() == null ? "the project page" : result.url());
+                    result.currentVersion(), result.latestVersion(),
+                    result.url() == null ? "the project page" : result.url());
         }
     }
 
@@ -103,24 +105,25 @@ public final class UpdateChecker {
         if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
             throw new IllegalArgumentException("Refusing non-HTTPS update URL: " + mod.updateUrl());
         }
-        HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(CONNECT_TIMEOUT)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .build();
         HttpRequest request = HttpRequest.newBuilder(uri)
                 .timeout(REQUEST_TIMEOUT)
                 .header("Accept", "application/json")
                 .header("User-Agent", "Mycel/" + my.celium.org.Mycel.getVersion() + " (update-check)")
                 .GET()
                 .build();
-        HttpResponse<byte[]> response =
-                client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new IllegalStateException("HTTP " + response.statusCode());
+        HttpResponse<InputStream> response =
+                CLIENT.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        byte[] body;
+        // Read at most one byte past the cap so an oversized body is refused
+        // without ever buffering it.
+        try (InputStream in = response.body()) {
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IllegalStateException("HTTP " + response.statusCode());
+            }
+            body = in.readNBytes(MAX_BYTES + 1);
         }
-        byte[] body = response.body();
-        if (body == null || body.length == 0 || body.length > MAX_BYTES) {
-            throw new IllegalStateException("Bad response size: " + (body == null ? -1 : body.length));
+        if (body.length == 0 || body.length > MAX_BYTES) {
+            throw new IllegalStateException("Bad response size: " + body.length);
         }
         JsonObject json = JsonParser
                 .parseString(new String(body, StandardCharsets.UTF_8))

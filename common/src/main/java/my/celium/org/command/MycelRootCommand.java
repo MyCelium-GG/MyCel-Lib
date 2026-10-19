@@ -92,11 +92,9 @@ public final class MycelRootCommand {
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
                             CommandHelper.success(source, MycelDiagnostics.headerLine());
-                            CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
-                                    .append(TextUtil.muted("Registered mods ("))
-                                    .append(TextUtil.body(
-                                            String.valueOf(Mycel.getRegisteredMods().size())))
-                                    .append(TextUtil.muted(") \u2014 see /mycel mods"))));
+                            CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Registered mods",
+                                    String.valueOf(Mycel.getRegisteredMods().size())))
+                                    .append(TextUtil.muted("  see /mycel mods")));
                             return 1;
                         }))
                 .then(Commands.literal("mods")
@@ -108,7 +106,7 @@ public final class MycelRootCommand {
                                         TextUtil.note("No mods registered with Mycel yet."));
                             } else {
                                 CommandHelper.success(source,
-                                        TextUtil.header("Mods (" + mods.size() + ")"));
+                                        TextUtil.header("Mods", String.valueOf(mods.size())));
                                 for (ModMetadata mod : mods) {
                                     CommandHelper.success(source, MycelDiagnostics.modLine(mod));
                                 }
@@ -124,8 +122,7 @@ public final class MycelRootCommand {
                                     String modId = StringArgumentType.getString(context, "modid");
                                     MycelConfig config = Mycel.getConfig(modId);
                                     if (config == null) {
-                                        CommandHelper.success(source, TextUtil.fail(
-                                                "No Mycel config for '" + modId + "'."));
+                                        CommandHelper.failure(source, noConfig(modId));
                                         return 0;
                                     }
                                     config.reload();
@@ -174,7 +171,7 @@ public final class MycelRootCommand {
     // ------------------------------------------------------------------ help
 
     private static void sendHelp(CommandSourceStack source) {
-        CommandHelper.success(source, TextUtil.header("Mycel " + Mycel.getVersion()));
+        CommandHelper.success(source, TextUtil.header("Mycel " + Mycel.getVersion(), "commands"));
         CommandHelper.success(source, usage("/mycel info", "library, loader and MC versions"));
         CommandHelper.success(source, usage("/mycel mods", "mods registered with Mycel"));
         CommandHelper.success(source,
@@ -184,18 +181,13 @@ public final class MycelRootCommand {
         CommandHelper.success(source,
                 usage("/mycel reset <mod> [key]", "restore defaults (op)"));
         CommandHelper.success(source, usage("/mycel reload <mod>", "re-read the config file (op)"));
-        CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
-                .append(TextUtil.muted("Keys look like "))
-                .append(TextUtil.accent("category.key"))
-                .append(TextUtil.muted(" or just "))
-                .append(TextUtil.accent("key"))
-                .append(TextUtil.muted(" when unique."))));
+        CommandHelper.success(source, TextUtil.detail("Keys look like category.key, or just key when unique."));
     }
 
     private static Component usage(String command, String blurb) {
-        return TextUtil.prefixed(TextUtil.empty()
+        return TextUtil.item(TextUtil.empty()
                 .append(TextUtil.infoText(command))
-                .append(TextUtil.muted("  \u2014  " + blurb)));
+                .append(TextUtil.muted("  " + blurb)));
     }
 
     // ------------------------------------------------------------------ get
@@ -203,21 +195,18 @@ public final class MycelRootCommand {
     private static int listValues(CommandSourceStack source, String modId) {
         MycelConfig config = Mycel.getConfig(modId);
         if (config == null) {
-            CommandHelper.success(source, TextUtil.fail("No Mycel config for '" + modId + "'."));
+            CommandHelper.failure(source, noConfig(modId));
             return 0;
         }
         if (config.values().isEmpty()) {
             CommandHelper.success(source, TextUtil.note("'" + modId + "' has no config values."));
             return 1;
         }
-        CommandHelper.success(source, TextUtil.header(modId + "  (" + config.values().size() + " values)"));
+        CommandHelper.success(source, TextUtil.header(modId, config.values().size() + " values"));
         for (ConfigValue<?> value : config.values()) {
             CommandHelper.success(source, MycelDiagnostics.configLine(value));
             if (!value.description().isBlank()) {
-                CommandHelper.success(source,
-                        TextUtil.prefixed(TextUtil.empty()
-                                .append(TextUtil.faint("    \u2514 "))
-                                .append(TextUtil.muted(value.description()))));
+                CommandHelper.success(source, TextUtil.detail(value.description()));
             }
         }
         return config.values().size();
@@ -226,22 +215,23 @@ public final class MycelRootCommand {
     private static int showValue(CommandSourceStack source, String modId, String path) {
         MycelConfig config = Mycel.getConfig(modId);
         if (config == null) {
-            CommandHelper.success(source, TextUtil.fail("No Mycel config for '" + modId + "'."));
+            CommandHelper.failure(source, noConfig(modId));
             return 0;
         }
         ConfigValue<?> value = ConfigStrings.find(config, path);
         if (value == null) {
-            CommandHelper.success(source, unknownKey(config, path));
+            CommandHelper.failure(source, unknownKey(config, path));
             return 0;
         }
-        CommandHelper.success(source, MycelDiagnostics.configLine(value));
-        CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
-                .append(TextUtil.muted("Type: "))
-                .append(TextUtil.body(ConfigStrings.describe(value)))
-                .append(TextUtil.muted("   Default: "))
-                .append(TextUtil.body(ConfigStrings.defaultToString(value)))));
+        CommandHelper.success(source, TextUtil.header(ConfigStrings.pathOf(value), modId));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Value",
+                value.isDefault() ? TextUtil.body(ConfigStrings.valueToString(value))
+                        : TextUtil.infoText(ConfigStrings.valueToString(value)))));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Type", ConfigStrings.describe(value))));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Default",
+                ConfigStrings.defaultToString(value))));
         if (!value.description().isBlank()) {
-            CommandHelper.success(source, TextUtil.note(value.description()));
+            CommandHelper.success(source, TextUtil.detail(value.description()));
         }
         return 1;
     }
@@ -251,25 +241,22 @@ public final class MycelRootCommand {
     private static int setValue(CommandSourceStack source, String modId, String path, String rawValue) {
         MycelConfig config = Mycel.getConfig(modId);
         if (config == null) {
-            CommandHelper.success(source, TextUtil.fail("No Mycel config for '" + modId + "'."));
+            CommandHelper.failure(source, noConfig(modId));
             return 0;
         }
         ConfigValue<?> value = ConfigStrings.find(config, path);
         if (value == null) {
-            CommandHelper.success(source, unknownKey(config, path));
+            CommandHelper.failure(source, unknownKey(config, path));
             return 0;
         }
         String before = ConfigStrings.valueToString(value);
         try {
             ConfigStrings.parseAndSet(value, rawValue);
         } catch (IllegalArgumentException e) {
-            CommandHelper.success(source, TextUtil.fail("Invalid value for '"
+            CommandHelper.failure(source, TextUtil.fail("Invalid value for '"
                     + ConfigStrings.pathOf(value) + "': " + e.getMessage()));
-            CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
-                    .append(TextUtil.muted("Expected "))
-                    .append(TextUtil.body(ConfigStrings.describe(value)))
-                    .append(TextUtil.muted("   Current: "))
-                    .append(TextUtil.body(before))));
+            CommandHelper.failure(source, TextUtil.detail("Expected " + ConfigStrings.describe(value)
+                    + " \u00B7 current " + before));
             return 0;
         }
         String after = ConfigStrings.valueToString(value);
@@ -281,7 +268,7 @@ public final class MycelRootCommand {
         CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
                 .append(TextUtil.success("\u2714 "))
                 .append(TextUtil.accent(ConfigStrings.pathOf(value)))
-                .append(TextUtil.muted("  " + before + "  \u2192  "))
+                .append(TextUtil.muted("  " + before + " \u2192 "))
                 .append(TextUtil.infoText(after))));
         return 1;
     }
@@ -291,7 +278,7 @@ public final class MycelRootCommand {
     private static int resetValues(CommandSourceStack source, String modId, String path) {
         MycelConfig config = Mycel.getConfig(modId);
         if (config == null) {
-            CommandHelper.success(source, TextUtil.fail("No Mycel config for '" + modId + "'."));
+            CommandHelper.failure(source, noConfig(modId));
             return 0;
         }
         if (path == null) {
@@ -302,7 +289,7 @@ public final class MycelRootCommand {
         }
         ConfigValue<?> value = ConfigStrings.find(config, path);
         if (value == null) {
-            CommandHelper.success(source, unknownKey(config, path));
+            CommandHelper.failure(source, unknownKey(config, path));
             return 0;
         }
         value.reset();
@@ -312,6 +299,10 @@ public final class MycelRootCommand {
     }
 
     // ---------------------------------------------------------------- errors
+
+    private static Component noConfig(String modId) {
+        return TextUtil.fail("No Mycel config for '" + modId + "'. Try /mycel mods.");
+    }
 
     private static Component unknownKey(MycelConfig config, String path) {
         List<String> matches = new ArrayList<>();

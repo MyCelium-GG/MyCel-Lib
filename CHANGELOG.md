@@ -7,7 +7,7 @@ bump major. It ships as one universal jar for Minecraft 26.3
 (Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
-## [Unreleased]
+## [1.3.0] - 2026-10-19
 
 ### Changed
 
@@ -20,6 +20,8 @@ bump major. It ships as one universal jar for Minecraft 26.3
   `MycelDiagnostics.modLine()`/`configLine()` now return untagged rows.
 - `CommandHelper.failure()` uses vanilla's failure channel, so errors still
   show when `sendCommandFeedback` is off.
+- `/mycel` output uses plain separators (`·`, `›`, `→`) instead of em-dashes.
+- Mycel checks for its own updates through the MyCelium wiki.
 
 ### Fixed
 

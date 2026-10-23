@@ -1,5 +1,8 @@
 package my.celium.org.command;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,11 +16,19 @@ import my.celium.org.config.ConfigStrings;
 import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.diag.MycelDiagnostics;
+import my.celium.org.diag.MycelDump;
+import my.celium.org.internal.PlatformHolder;
+import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
 import my.celium.org.util.TextUtil;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * The shared {@code /mycel} command, registered by every loader module through
@@ -33,6 +44,9 @@ import net.minecraft.network.chat.Component;
  *       value live (op level 2, validated like the config screen);</li>
  *   <li>{@code /mycel reset <modid> [key]} - resets one or all values to
  *       defaults (op level 2).</li>
+ *   <li>{@code /mycel dump} - shows what a support dump contains;
+ *       {@code /mycel dump confirm} saves it and uploads it to pastes.dev
+ *       (op level 2, or the singleplayer host).</li>
  * </ul>
  *
  * <p>Keys are {@code key} for root values or {@code category.key} for
@@ -165,7 +179,12 @@ public final class MycelRootCommand {
                                         .suggests(valuePaths)
                                         .executes(context -> resetValues(context.getSource(),
                                                 StringArgumentType.getString(context, "modid"),
-                                                StringArgumentType.getString(context, "path")))))));
+                                                StringArgumentType.getString(context, "path"))))))
+                .then(Commands.literal("dump")
+                        .requires(MycelRootCommand::canDump)
+                        .executes(context -> previewDump(context.getSource()))
+                        .then(Commands.literal("confirm")
+                                .executes(context -> runDump(context.getSource())))));
     }
 
     // ------------------------------------------------------------------ help
@@ -181,6 +200,7 @@ public final class MycelRootCommand {
         CommandHelper.success(source,
                 usage("/mycel reset <mod> [key]", "restore defaults (op)"));
         CommandHelper.success(source, usage("/mycel reload <mod>", "re-read the config file (op)"));
+        CommandHelper.success(source, usage("/mycel dump", "support report with a shareable link (op)"));
         CommandHelper.success(source, TextUtil.detail("Keys look like category.key, or just key when unique."));
     }
 
@@ -296,6 +316,115 @@ public final class MycelRootCommand {
         CommandHelper.success(source, TextUtil.ok("Reset '" + ConfigStrings.pathOf(value) + "' to "
                 + ConfigStrings.defaultToString(value) + "."));
         return 1;
+    }
+
+    // ---------------------------------------------------------------- dump
+
+    /** Ops, the console, and the singleplayer host (who has no op level without cheats). */
+    private static boolean canDump(CommandSourceStack source) {
+        if (Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(source)) {
+            return true;
+        }
+        ServerPlayer player = source.getPlayer();
+        return player != null && source.getServer() != null
+                && source.getServer().isSingleplayerOwner(player.nameAndId());
+    }
+
+    private static int previewDump(CommandSourceStack source) {
+        int mods = PlatformHolder.get().loadedMods().size();
+        CommandHelper.success(source, TextUtil.header("Dump", "what gets shared"));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Versions",
+                "Minecraft, loader, Java, OS, memory")));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Mods",
+                mods + " installed, " + Mycel.getRegisteredMods().size() + " Mycel mods with their config")));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Log",
+                "end of logs/latest.log")));
+        CommandHelper.success(source, TextUtil.detail("IP addresses, tokens and your home folder are removed."));
+        if (MycelDump.uploadsEnabled()) {
+            CommandHelper.success(source, TextUtil.detail(
+                    "Uploaded to pastes.dev: anyone with the link can read it."));
+            CommandHelper.success(source, TextUtil.item(button("Upload", "/mycel dump confirm",
+                    "Save the dump and upload it")));
+        } else {
+            CommandHelper.success(source, TextUtil.detail(
+                    "Uploads are off in mycel.json, so the dump is only saved to mycel-dumps/."));
+            CommandHelper.success(source, TextUtil.item(button("Save", "/mycel dump confirm",
+                    "Save the dump to mycel-dumps/")));
+        }
+        return 1;
+    }
+
+    private static int runDump(CommandSourceStack source) {
+        long wait = MycelDump.cooldownSeconds();
+        if (MycelDump.uploadsEnabled() && wait > 0) {
+            CommandHelper.failure(source, TextUtil.fail("Just uploaded one. Try again in " + wait + "s."));
+            return 0;
+        }
+        String json = MycelDump.toJson(MycelDump.collect(source.getServer()));
+        Path saved;
+        try {
+            saved = MycelDump.save(json);
+        } catch (IOException e) {
+            saved = null;
+        }
+        String local = saved == null ? null : "mycel-dumps/" + saved.getFileName();
+        if (!MycelDump.uploadsEnabled()) {
+            if (local == null) {
+                CommandHelper.failure(source, TextUtil.fail("Could not save the dump. See the log."));
+                return 0;
+            }
+            CommandHelper.success(source, TextUtil.ok("Saved " + local + "."));
+            return 1;
+        }
+        CommandHelper.success(source, TextUtil.note("Uploading dump\u2026"));
+        MinecraftServer server = source.getServer();
+        MycelDump.upload(json).whenComplete((key, error) -> server.execute(() -> {
+            if (error != null) {
+                Throwable cause = error.getCause() != null ? error.getCause() : error;
+                MycelLog.warn("Dump upload failed: {}", cause.toString());
+                CommandHelper.failure(source, TextUtil.fail("Upload failed (" + shortReason(cause) + ")."
+                        + (local == null ? "" : " Saved " + local + " instead.")));
+                return;
+            }
+            String url = MycelDump.viewerUrl(key);
+            CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
+                    .append(TextUtil.success("\u2714 "))
+                    .append(TextUtil.body("Dump ready: "))
+                    .append(link(url))
+                    .append(TextUtil.body(" "))
+                    .append(copyButton(url))));
+            MycelLog.info("Dump uploaded: {}", url);
+        }));
+        return 1;
+    }
+
+    private static String shortReason(Throwable cause) {
+        String message = cause.getMessage();
+        if (message == null || message.isBlank() || message.length() > 60) {
+            return cause.getClass().getSimpleName();
+        }
+        return message;
+    }
+
+    private static MutableComponent link(String url) {
+        return TextUtil.accent(url).withStyle(style -> style
+                .withUnderlined(true)
+                .withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))
+                .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted("Open in your browser"))));
+    }
+
+    private static MutableComponent copyButton(String url) {
+        return TextUtil.empty().append(TextUtil.faint("[")).append(TextUtil.accent("Copy"))
+                .append(TextUtil.faint("]")).withStyle(style -> style
+                        .withClickEvent(new ClickEvent.CopyToClipboard(url))
+                        .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted("Copy the link"))));
+    }
+
+    private static MutableComponent button(String label, String command, String hover) {
+        return TextUtil.empty().append(TextUtil.faint("[")).append(TextUtil.accent(label))
+                .append(TextUtil.faint("]")).withStyle(style -> style
+                        .withClickEvent(new ClickEvent.RunCommand(command))
+                        .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted(hover))));
     }
 
     // ---------------------------------------------------------------- errors

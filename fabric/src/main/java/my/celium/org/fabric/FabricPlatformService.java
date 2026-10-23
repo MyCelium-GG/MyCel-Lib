@@ -1,7 +1,10 @@
 package my.celium.org.fabric;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
+import my.celium.org.platform.LoadedMod;
 import my.celium.org.platform.Platform;
 import my.celium.org.platform.PlatformService;
 import net.fabricmc.loader.api.FabricLoader;
@@ -70,6 +73,19 @@ public final class FabricPlatformService implements PlatformService {
                     .orElse(null);
         } catch (RuntimeException e) {
             return null;
+        }
+    }
+
+    @Override
+    public List<LoadedMod> loadedMods() {
+        try {
+            List<LoadedMod> mods = new ArrayList<>();
+            FabricLoader.getInstance().getAllMods().forEach(container -> mods.add(new LoadedMod(
+                    container.getMetadata().getId(), container.getMetadata().getName(),
+                    container.getMetadata().getVersion().getFriendlyString())));
+            return mods;
+        } catch (RuntimeException e) {
+            return List.of();
         }
     }
 }

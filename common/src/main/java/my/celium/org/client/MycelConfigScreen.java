@@ -6,6 +6,7 @@ import java.util.List;
 import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.config.ValueKind;
+import my.celium.org.util.TextUtil;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -355,10 +356,10 @@ public final class MycelConfigScreen extends Screen {
         private void onText(String text) {
             try {
                 parsed = parse(value, text.trim());
-                box.setTextColor(0xE0E0E0);
+                box.setTextColor(0xFF000000 | TextUtil.BODY);
                 mark(true, null);
             } catch (IllegalArgumentException e) {
-                box.setTextColor(0xFF5555);
+                box.setTextColor(0xFF000000 | TextUtil.ERROR);
                 String message = e.getMessage();
                 mark(false, message == null || message.length() > 40 ? "invalid value" : message);
             }

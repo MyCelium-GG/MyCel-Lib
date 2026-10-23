@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,10 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import my.celium.org.config.ConfigBuilder;
 import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
+import my.celium.org.diag.MycelDump;
 import my.celium.org.internal.ClientProxy;
 import my.celium.org.internal.PlatformHolder;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
+import my.celium.org.platform.LoadedMod;
 import my.celium.org.platform.Platform;
 import my.celium.org.platform.PlatformService;
 import my.celium.org.update.UpdateChecker;
@@ -50,7 +53,7 @@ public final class Mycel {
     public static final String MOD_ID = "mycel";
 
     /** Mycel's version. Must match {@code gradle.properties}. */
-    public static final String VERSION = "1.3.0";
+    public static final String VERSION = "1.3.1";
 
     /** Mycel's own metadata (registered automatically on {@link #initialize()}). */
     public static final ModMetadata METADATA =
@@ -84,7 +87,11 @@ public final class Mycel {
         ConfigBuilder global = new ConfigBuilder(METADATA);
         ConfigValue<Boolean> flag = global.booleanValue("enableUpdateChecker", true,
                 "Whether Mycel may check for updates to registered mods (async, cached, never blocks).");
+        ConfigValue<Boolean> dumpUploads = global.booleanValue("allowDumpUploads", true,
+                "Whether /mycel dump may upload its report to pastes.dev. Off: reports are only saved to mycel-dumps/.");
         global.build(); // ConfigBuilder.build() registers the handle with Mycel.
+        MycelDump.setUploadsEnabled(dumpUploads.get());
+        dumpUploads.onChange(MycelDump::setUploadsEnabled);
         updateCheckerFlag = flag;
         UpdateChecker.setGloballyEnabled(flag.get());
         flag.onChange(UpdateChecker::setGloballyEnabled);
@@ -168,6 +175,11 @@ public final class Mycel {
 
     public static Platform getPlatform() {
         return PlatformHolder.get().platform();
+    }
+
+    /** Every mod the loader has loaded (not only Mycel mods). Empty when unknown. */
+    public static List<LoadedMod> getLoadedMods() {
+        return PlatformHolder.get().loadedMods();
     }
 
     /** Minecraft version string. */

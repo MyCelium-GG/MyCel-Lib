@@ -1,6 +1,7 @@
 package my.celium.org.platform;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Loader-specific behaviour behind a tiny interface.
@@ -31,4 +32,15 @@ public interface PlatformService {
 
     /** Version of another mod, or {@code null} when absent/unknown. Never throws. */
     String getModVersion(String modId);
+
+    /** Every mod the loader has loaded. Empty when unknown. Never throws. */
+    default List<LoadedMod> loadedMods() {
+        return List.of();
+    }
+
+    /** The game (client) or server directory that holds {@code config}, {@code logs} and {@code mods}. */
+    default Path gameDir() {
+        Path parent = configDir().toAbsolutePath().getParent();
+        return parent == null ? Path.of(".").toAbsolutePath() : parent;
+    }
 }

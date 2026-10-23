@@ -1,7 +1,10 @@
 package my.celium.org.neoforge;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
+import my.celium.org.platform.LoadedMod;
 import my.celium.org.platform.Platform;
 import my.celium.org.platform.PlatformService;
 import net.neoforged.fml.ModList;
@@ -79,6 +82,21 @@ public final class NeoForgePlatformService implements PlatformService {
                     .orElse("unknown");
         } catch (RuntimeException e) {
             return "unknown";
+        }
+    }
+
+    @Override
+    public List<LoadedMod> loadedMods() {
+        try {
+            if (ModList.get() == null) {
+                return List.of();
+            }
+            List<LoadedMod> mods = new ArrayList<>();
+            ModList.get().getMods().forEach(info -> mods.add(new LoadedMod(
+                    info.getModId(), info.getDisplayName(), info.getVersion().toString())));
+            return mods;
+        } catch (RuntimeException e) {
+            return List.of();
         }
     }
 }

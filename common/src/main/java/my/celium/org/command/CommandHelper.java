@@ -2,9 +2,12 @@ package my.celium.org.command;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import my.celium.org.util.TextUtil;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -54,10 +57,12 @@ public final class CommandHelper {
 
     /**
      * Sends a failure message. Goes through vanilla's failure channel, so it
-     * still shows when the {@code sendCommandFeedback} game rule is off; parts
-     * without their own color are drawn red by vanilla.
+     * still shows when the {@code sendCommandFeedback} game rule is off. Vanilla
+     * paints the root legacy red, so the message rides one level down with the
+     * wiki body color; parts without their own color never turn {@code §c}.
      */
     public static void failure(CommandSourceStack source, Component message) {
-        source.sendFailure(message);
+        source.sendFailure(TextUtil.empty().append(
+                TextUtil.empty().withStyle(Style.EMPTY.withColor(TextUtil.BODY)).append(message)));
     }
 }

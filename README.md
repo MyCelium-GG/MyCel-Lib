@@ -15,7 +15,7 @@ independent, original implementation: no Collective code, names, or assets are u
 | | |
 |---|---|
 | Package | `my.celium.org` |
-| Maven | `com.github.MyCelium-GG:MyCel-Lib:1.3.0` (universal, via JitPack) |
+| Maven | `com.github.MyCelium-GG:MyCel-Lib:1.3.1` (universal, via JitPack) |
 | Minecraft | **26.3** |
 | Java | **25** (Gradle daemon and compiler toolchain) |
 | Loaders | Fabric, Forge, NeoForge (all first-class, one unified `./gradlew build`) |
@@ -42,7 +42,10 @@ independent, original implementation: no Collective code, names, or assets are u
 - **Scheduling**: server-thread `runLater`/`runEvery`, background `runAsync`
 - **Registries**: deferred item/block/entity-type registration on every loader
 - **Commands**: Brigadier helpers plus a built-in `/mycel` diagnostics command
-- **Diagnostics**: versions, platform, registered mods, config state
+- **Diagnostics**: versions, platform, registered mods, config state, and
+  shareable `/mycel dump` reports
+- **Look**: `TextUtil` chat palette + `ChatVoice` message kit, `MycelTheme`
+  for screens, all in the MyCelium wiki colors
 
 Gameplay features do **not** belong here. They live in the small mods.
 
@@ -52,7 +55,7 @@ Mycel ships as **one universal jar** that loads on Fabric, Forge and
 NeoForge alike (like Collective's `fabric+forge+neo` bundle): one download
 per Minecraft version, no per-loader artifacts to choose between. It is
 distributed through [JitPack](https://jitpack.io/#MyCelium-GG/MyCel-Lib).
-Use a release tag (e.g. `1.3.0`), a commit hash, or `main-SNAPSHOT` for bleeding edge:
+Use a release tag (e.g. `1.3.1`), a commit hash, or `main-SNAPSHOT` for bleeding edge:
 
 ```groovy
 repositories {
@@ -62,16 +65,16 @@ repositories {
 
 dependencies {
     // Fabric (loom)
-    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.3.0'
+    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.3.1'
     // Forge (ForgeGradle userdev)
-    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.3.0'
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.3.1'
     // NeoForge (ModDev)
-    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.3.0'
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.3.1'
 }
 ```
 
 For local development, `./gradlew :universal:publishToMavenLocal` installs
-`my.celium.org:mycel-26.3:1.3.0` into `~/.m2`.
+`my.celium.org:mycel-26.3:1.3.1` into `~/.m2`.
 
 ## Minimal integration
 
@@ -141,8 +144,8 @@ Screen screen = Mycel.openConfigScreen(parentScreen, "mymod");
 ### `/mycel` command
 
 Registered automatically on every loader. All output uses the shared hex
-palette in `TextUtil`, matched to the MyCelium wiki (wiki red brand, light-red
-keys, soft green/amber/red status marks). Single replies start with a bold
+palette in `TextUtil`, built only from the MyCelium wiki's dark-theme colors
+(wiki red brand, blue keys, green/orange/red status marks, no legacy `§` colors). Single replies start with a bold
 `Mycel ›` tag; lists tag only their header and indent the rows below it:
 
 - `help` — usage overview
@@ -154,6 +157,9 @@ keys, soft green/amber/red status marks). Single replies start with a bold
   (`1/0`, `yes/no`, `on/off`), enums are case-insensitive, lists are
   comma-separated. Keys are `key` or `category.key`.
 - `reset <modid> [key]` — restore one or all values to defaults (op level 2)
+- `dump` — support report; `dump confirm` uploads it to pastes.dev and replies
+  with a `dumps.mycelium-gg.org` link (op level 2 or singleplayer host;
+  `allowDumpUploads: false` in `mycel.json` keeps it local)
 - `reload <modid>` — re-read the config file from disk (op level 2)
 
 Tab-completion covers mod ids, config keys and (for booleans/enums) values.

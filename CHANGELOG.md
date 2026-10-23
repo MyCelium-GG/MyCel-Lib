@@ -7,6 +7,41 @@ bump major. It ships as one universal jar for Minecraft 26.3
 (Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.3.1] - 2026-10-23
+
+### Added
+
+- `/mycel dump` (op level 2, or the singleplayer host): one support report
+  with versions, every loaded mod, each Mycel mod's config and the tail of
+  `logs/latest.log`. `/mycel dump` previews what is shared; `/mycel dump
+  confirm` saves it to `mycel-dumps/`, uploads it to pastes.dev and replies
+  with a `https://dumps.mycelium-gg.org/<key>` link. IP addresses, tokens and
+  the OS home folder are removed first. New `allowDumpUploads` flag in
+  `mycel.json` (default `true`) keeps dumps local when off.
+- `TextUtil.voice(tag)` returns a `ChatVoice`: the shared message kit
+  (`ok`, `fail`, `note`, `caution`, `header`) with a mod's own `Tag ›` prefix.
+  `TextUtil.msg(parts...)` joins strings and components.
+- `MycelTheme` (client): the wiki theme as ARGB for screens and HUD text, plus
+  `panel()`, `colored()` and `fit()`.
+- `PlatformService.loadedMods()` / `gameDir()` and `Mycel.getLoadedMods()`.
+- `TextUtil.BRIGHT` (white) and `TextUtil.tone(ChatFormatting)`.
+
+### Changed
+
+- Chat colors now come only from the MyCelium wiki's dark theme: `ACCENT`
+  is wiki blue `#79B8FF`, `SUCCESS` `#7EE787`, `WARN` `#FFA657`, `INFO`
+  `#D2A8FF`, `FAINT` `#8B949E`, `ERROR` the wiki red `#EF5350`. The made-up
+  light-red/rose/amber tones are gone.
+- `TextUtil.colored(Component, ChatFormatting)` is deprecated and maps legacy
+  colors to the nearest wiki tone.
+
+### Fixed
+
+- `CommandHelper.failure()` no longer lets vanilla paint uncolored parts
+  legacy red (`§c`); they use the wiki body color.
+- Config screen text boxes use the wiki body/error colors instead of
+  `#E0E0E0` / legacy `#FF5555`.
+
 ## [1.3.0] - 2026-10-19
 
 ### Changed

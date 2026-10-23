@@ -12,10 +12,11 @@ import net.minecraft.network.chat.TextColor;
  * Small helpers around {@link Component}. Mycel does not rebuild the text
  * system - these just remove qualifier noise.
  *
- * <p>The palette below is the shared Mycel look, taken from the MyCelium wiki's
- * dark theme (chat is always drawn on a dark backdrop): wiki red for the brand,
- * a lighter red for names and keys, the wiki's text and muted greys for body
- * copy. Legacy helpers ({@link #green(String)}, {@link #red(String)},
+ * <p>The palette below is the shared Mycel look and uses only colors from the
+ * MyCelium wiki's dark theme (chat is always drawn on a dark backdrop): the
+ * page tokens ({@code --accent}, {@code --text}, {@code --muted}) plus the
+ * dark code-highlight tokens ({@code .tok-*}). No legacy {@code §} colors.
+ * Legacy helpers ({@link #green(String)}, {@link #red(String)},
  * {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
  * render through the matching tone.
  */
@@ -24,25 +25,27 @@ public final class TextUtil {
     }
 
     // ------------------------------------------------------------ palette
-    // Wiki dark-theme tokens (style.css), checked for contrast on the chat backdrop.
+    // Wiki dark-theme tokens (style.css). Nothing here exists outside the wiki.
     /** Wiki red ({@code --accent}) - brand, headers. */
     public static final int PRIMARY = 0xEF5350;
-    /** Light red - mod names, config keys. */
-    public static final int ACCENT = 0xFF8A80;
-    /** Soft green - success. */
-    public static final int SUCCESS = 0x81C784;
-    /** Bright red - errors. Always paired with a cross so it never reads as the brand. */
-    public static final int ERROR = 0xFF5252;
-    /** Amber - warnings / gold. */
-    public static final int WARN = 0xFFB74D;
-    /** Pale rose - values, commands. */
-    public static final int INFO = 0xFFCDD2;
+    /** Wiki blue ({@code .tok-k}) - mod names, config keys. */
+    public static final int ACCENT = 0x79B8FF;
+    /** Wiki green ({@code .tok-s}) - success. */
+    public static final int SUCCESS = 0x7EE787;
+    /** Wiki red ({@code --accent}) - errors. Always paired with a cross so it never reads as the brand. */
+    public static final int ERROR = 0xEF5350;
+    /** Wiki orange ({@code .tok-a}) - warnings / gold. */
+    public static final int WARN = 0xFFA657;
+    /** Wiki purple ({@code .tok-n}) - values, commands. */
+    public static final int INFO = 0xD2A8FF;
     /** Wiki {@code --muted} - secondary text. */
     public static final int MUTED = 0xA3A3A3;
-    /** Brackets, bullets, dividers. Lighter than the wiki border so it survives the chat backdrop. */
-    public static final int FAINT = 0x7A7A7A;
+    /** Wiki comment grey ({@code .tok-c}) - brackets, bullets, dividers. */
+    public static final int FAINT = 0x8B949E;
     /** Wiki {@code --text} - body text. */
     public static final int BODY = 0xE6E6E6;
+    /** White - names and titles that should stand out from body text. */
+    public static final int BRIGHT = 0xFFFFFF;
 
     public static MutableComponent literal(String text) {
         return Component.literal(text);
@@ -56,8 +59,36 @@ public final class TextUtil {
         return Component.empty();
     }
 
+    /**
+     * Applies {@code formatting} to a copy of {@code text}. Legacy colors are
+     * swapped for the nearest wiki tone, so old callers never show {@code §}
+     * colors; bold, italic and the other decorations pass through unchanged.
+     *
+     * @deprecated use the tone helpers ({@link #success(String)}, ...) or
+     *             {@link #coloredHex(Component, int)}
+     */
+    @Deprecated
     public static MutableComponent colored(Component text, ChatFormatting formatting) {
-        return text.copy().withStyle(formatting);
+        int tone = tone(formatting);
+        return tone < 0 ? text.copy().withStyle(formatting) : coloredHex(text, tone);
+    }
+
+    /**
+     * Wiki tone standing in for a legacy {@link ChatFormatting} color, or
+     * {@code -1} for decorations (bold, italic, ...) and reset.
+     */
+    public static int tone(ChatFormatting legacy) {
+        return switch (legacy) {
+            case GREEN, DARK_GREEN -> SUCCESS;
+            case RED, DARK_RED -> ERROR;
+            case GOLD, YELLOW -> WARN;
+            case AQUA, DARK_AQUA, BLUE, DARK_BLUE -> ACCENT;
+            case LIGHT_PURPLE, DARK_PURPLE -> INFO;
+            case GRAY -> MUTED;
+            case DARK_GRAY, BLACK -> FAINT;
+            case WHITE -> BRIGHT;
+            default -> -1;
+        };
     }
 
     /** Applies a raw RGB color ({@code 0xRRGGBB}) to a copy of {@code text}. */
@@ -151,49 +182,67 @@ public final class TextUtil {
     }
 
     // ------------------------------------------------------------ message kit
-    // One voice for every /mycel reply. Single lines carry the "Mycel ›" tag;
+    // One voice for every reply. Single lines carry the "Tag ›" prefix;
     // multi-line replies tag only their header and indent the rows below it.
+    // The static helpers speak as Mycel; mods get their own tag from voice().
+
+    private static final ChatVoice MYCEL = new ChatVoice("Mycel");
+
+    /** Message kit tagged with {@code tag}, e.g. {@code voice("Pets").ok(name, " came running.")}. */
+    public static ChatVoice voice(String tag) {
+        return new ChatVoice(tag);
+    }
+
+    /**
+     * A message from parts: strings become body text, components are appended
+     * as they are. {@code msg(name, " came running.")}
+     */
+    public static MutableComponent msg(Object... parts) {
+        MutableComponent out = empty();
+        for (Object part : parts) {
+            out.append(part instanceof Component component ? component : body(String.valueOf(part)));
+        }
+        return out;
+    }
 
     /** {@code Mycel › } tag: bold wiki-red brand + faint chevron. */
     public static MutableComponent prefix() {
-        return empty()
-                .append(primary("Mycel").withStyle(style -> style.withBold(true)))
-                .append(faint(" \u203A "));
+        return MYCEL.prefix();
     }
 
     /** Prepends the {@code Mycel ›} tag to {@code message}. */
     public static MutableComponent prefixed(Component message) {
-        return empty().append(prefix()).append(message);
+        return MYCEL.prefixed(message);
     }
 
     /** Success line: green check + message. */
     public static MutableComponent ok(String text) {
-        return prefixed(empty().append(success("\u2714 ")).append(body(text)));
+        return MYCEL.ok(text);
     }
 
     /** Error line: red cross + message. */
     public static MutableComponent fail(String text) {
-        return prefixed(empty().append(error("\u2718 ")).append(body(text)));
+        return MYCEL.fail(text);
     }
 
     /** Info line: plain message after the tag. */
     public static MutableComponent note(String text) {
-        return prefixed(body(text));
+        return MYCEL.note(text);
     }
 
-    /** Warning line: amber bang + message. */
+    /** Warning line: orange bang + message. */
     public static MutableComponent caution(String text) {
-        return prefixed(empty().append(warn("! ")).append(body(text)));
+        return MYCEL.caution(text);
     }
 
     /** Header line opening a multi-line reply: tag + bright title. */
     public static MutableComponent header(String title) {
-        return prefixed(body(title).withStyle(style -> style.withBold(true)));
+        return MYCEL.header(title);
     }
 
     /** Header line with a muted suffix, e.g. {@code header("Mods", "3")}. */
     public static MutableComponent header(String title, String detail) {
-        return header(title).append(muted("  " + detail));
+        return MYCEL.header(title, detail);
     }
 
     /** Indented row under a {@link #header}: faint bullet + content, no tag. */

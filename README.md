@@ -198,6 +198,22 @@ respective `runs/*/eula.txt` first.
 First builds download and process Minecraft (~1GB caches, decompile takes
 several minutes) and peak around 6-8GB RAM; later builds are incremental.
 
+## Releasing
+
+Push a version tag (`git tag 1.3.2 && git push origin 1.3.2`). The `release`
+workflow builds the universal jar, creates the GitHub Release and uploads the
+jar to CurseForge with the matching `CHANGELOG.md` section as its changelog.
+To publish a tag that already exists, run the workflow by hand (Actions →
+release → Run workflow) and enter the tag.
+
+The CurseForge step is the shared action in
+`.github/actions/curseforge-upload`, which every MyCelium mod uses too
+(`MyCelium-GG/MyCel-Lib/.github/actions/curseforge-upload@main`). Mods set
+`curseforge_project_id` and `curseforge_environment` (`client`, `server` or
+`both`) in `gradle.properties`; an empty id skips CurseForge. The API token
+lives in each repo's `CURSEFORGE_TOKEN` secret. Game versions are looked up by
+name, and only the jar named for the tagged version is uploaded.
+
 ## Deliberate non-goals
 
 - No dependency injection, event-bus-everything, or abstraction layers for one-liners.

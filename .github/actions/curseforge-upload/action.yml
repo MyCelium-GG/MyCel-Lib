@@ -1,0 +1,86 @@
+name: CurseForge upload
+description: >
+  Uploads a MyCelium release to CurseForge. Takes the project id and side from
+  its inputs or from curseforge_project_id / curseforge_environment in
+  gradle.properties, the changelog from
+  CHANGELOG.md, and resolves game versions by name. Skips (with a notice) when
+  the project id or token is missing.
+
+inputs:
+  token:
+    description: CurseForge upload API token (pass secrets.CURSEFORGE_TOKEN)
+    required: true
+  project-id:
+    description: "Numeric CurseForge project id (default: curseforge_project_id in gradle.properties)"
+    default: ""
+  environment:
+    description: "client, server or both (default: curseforge_environment in gradle.properties, else both)"
+    default: ""
+  name:
+    description: Display name, e.g. "Better Pets"
+    required: true
+  version:
+    description: Version being released (the tag)
+    required: true
+  files:
+    description: One LOADER=PATH per line (fabric, forge, neoforge, or all for a universal jar)
+    required: true
+  require:
+    description: Required project slugs, space separated
+    default: mycel
+  fabric-require:
+    description: Extra required slugs for Fabric files, space separated
+    default: fabric-api
+  release-type:
+    description: release, beta or alpha
+    default: release
+  dry-run:
+    description: Resolve everything and print it without uploading
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Upload to CurseForge
+      shell: bash
+      env:
+        CURSEFORGE_TOKEN: ${{ inputs.token }}
+        CF_NAME: ${{ inputs.name }}
+        CF_VERSION: ${{ inputs.version }}
+        CF_FILES: ${{ inputs.files }}
+        CF_REQUIRE: ${{ inputs.require }}
+        CF_FABRIC_REQUIRE: ${{ inputs.fabric-require }}
+        CF_RELEASE_TYPE: ${{ inputs.release-type }}
+        CF_DRY_RUN: ${{ inputs.dry-run }}
+        CF_PROJECT: ${{ inputs.project-id }}
+        CF_ENVIRONMENT: ${{ inputs.environment }}
+      run: |
+        set -euo pipefail
+        prop() { grep -E "^$1=" gradle.properties | head -1 | cut -d= -f2- | tr -d '[:space:]'; }
+        PROJECT=${CF_PROJECT:-$(prop curseforge_project_id || true)}
+        if [ -z "$PROJECT" ]; then
+          echo "::notice::No curseforge_project_id in gradle.properties; skipping CurseForge."
+          exit 0
+        fi
+        if [ -z "$CURSEFORGE_TOKEN" ]; then
+          echo "::warning::CURSEFORGE_TOKEN secret is not set; skipping CurseForge."
+          exit 0
+        fi
+        ENVIRONMENT=${CF_ENVIRONMENT:-$(prop curseforge_environment || true)}
+        args=(--project "$PROJECT" --name "$CF_NAME" --version "$CF_VERSION"
+              --mc "$(prop minecraft_version)" --java "$(prop java_version)"
+              --environment "${ENVIRONMENT:-both}" --release-type "$CF_RELEASE_TYPE")
+        for slug in $CF_REQUIRE; do args+=(--require "$slug"); done
+        for slug in $CF_FABRIC_REQUIRE; do args+=(--fabric-require "$slug"); done
+        while IFS= read -r line; do
+          line=$(echo "$line" | xargs)
+          [ -z "$line" ] && continue
+          loader=${line%%=*}
+          pattern=${line#*=}
+          # Only the main jar of exactly this version; never sources/javadoc jars.
+          match=$(ls $pattern 2>/dev/null | grep -F -- "-$CF_VERSION.jar" | grep -vE -- '-(sources|javadoc)\.jar$' | head -1 || true)
+          [ -n "$match" ] || { echo "::error::no $CF_VERSION jar matches $pattern"; exit 1; }
+          args+=(--file "$loader=$match")
+        done <<< "$CF_FILES"
+        [ "$CF_DRY_RUN" = "true" ] && args+=(--dry-run)
+        python3 "$GITHUB_ACTION_PATH/upload.py" "${args[@]}"

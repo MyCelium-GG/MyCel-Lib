@@ -25,7 +25,6 @@ jobs:
       contents: write
     env:
       TAG: ${{ inputs.tag || github.ref_name }}
-      HAS_DOCS_DEPLOY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,15 +63,3 @@ jobs:
           fabric-require: ""
           files: |
             all=universal/build/libs/mycel-*.jar
-      # Only for new tags: re-publishing an old tag by hand must not roll the
-      # docs back. Needs a service-account JSON key for the
-      # api-mycelium-gg-org Firebase project in FIREBASE_SERVICE_ACCOUNT.
-      - name: Publish API docs to api.mycelium-gg.org
-        if: ${{ github.event_name == 'push' && env.HAS_DOCS_DEPLOY == 'true' }}
-        env:
-          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          ./gradlew :common:javadoc --no-daemon
-          printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase.json"
-          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase.json" \
-            npx --yes firebase-tools@14 deploy --only hosting --project api-mycelium-gg-org --non-interactive

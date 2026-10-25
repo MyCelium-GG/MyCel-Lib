@@ -1,0 +1,31 @@
+name: docs
+
+# Publishes the Javadoc of the public API to https://api.mycelium-gg.org for
+# every new version tag. Run it by hand to republish the current main.
+# Needs the FIREBASE_SERVICE_ACCOUNT secret (a key with Firebase Hosting
+# rights on the api-mycelium-gg-org project).
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Build the Javadoc
+        run: ./gradlew :common:javadoc --no-daemon
+      - name: Deploy to Firebase Hosting
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase.json" \
+            npx --yes firebase-tools@14 deploy --only hosting --project api-mycelium-gg-org --non-interactive

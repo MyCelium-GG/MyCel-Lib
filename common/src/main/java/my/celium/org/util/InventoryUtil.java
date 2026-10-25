@@ -113,7 +113,14 @@ public final class InventoryUtil {
         return -1;
     }
 
-    /** Splits one item off into the player's hand area (used by QoL interactions). */
+    /**
+     * Whether the player's inventory holds an item matching {@code filter}.
+     *
+     * @deprecated despite its name this never moved anything into the hand;
+     *     it only reports whether a match exists. Use {@link #findSlot} instead.
+     *     Removed in Mycel 2.0.
+     */
+    @Deprecated(since = "1.4.0", forRemoval = true)
     public static boolean holdOne(Player player, Predicate<ItemStack> filter) {
         Inventory inventory = player.getInventory();
         int slot = findSlot(inventory, filter);

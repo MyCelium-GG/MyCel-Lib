@@ -45,6 +45,10 @@ loom {
             setConfigName('Example Fabric Client')
             ideConfigGenerated(true)
             runDir('runs/client')
+            // -PquickPlay=localhost:25565 joins that server right after start-up.
+            if (project.hasProperty('quickPlay')) {
+                programArgs('--quickPlayMultiplayer', project.property('quickPlay'))
+            }
         }
         server {
             server()

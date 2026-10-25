@@ -10,6 +10,8 @@ import my.celium.org.config.MycelConfig;
 import my.celium.org.internal.PlatformHolder;
 import my.celium.org.metadata.ModMetadata;
 import my.celium.org.platform.PlatformService;
+import my.celium.org.update.UpdateChecker;
+import my.celium.org.update.UpdateResult;
 import my.celium.org.util.TextUtil;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -57,6 +59,10 @@ public final class MycelDiagnostics {
                 .append(TextUtil.muted("  " + mod.id() + " \u00B7 " + configState));
         if (!Mycel.isEnabled(mod.id())) {
             row.append(TextUtil.warn("  disabled"));
+        }
+        UpdateResult update = UpdateChecker.lastResult(mod.id());
+        if (update != null && update.updateAvailable()) {
+            row.append(TextUtil.success("  \u2191 " + update.latestVersion()));
         }
         return TextUtil.item(row);
     }

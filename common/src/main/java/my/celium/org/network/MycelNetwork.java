@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import my.celium.org.internal.NetworkHooks;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
@@ -31,15 +31,25 @@ import net.minecraft.world.level.ChunkPos;
  * MycelNetwork.sendToPlayer(player, GREET, new GreetPacket("hi"));
  * }</pre>
  *
- * <p>Sending uses plain vanilla packets, so it is identical on every loader.
+ * <p>Sending uses plain vanilla packets on Fabric and NeoForge and Forge's
+ * channel on Forge (which refuses unwrapped payloads); callers never notice.
  * Receiving is wired by each loader module (Fabric entrypoints, Forge/NeoForge
  * payload events) which iterate {@link #definitions()}; handlers always run on
  * the game thread.
  *
+ * <p>Channels are optional on every loader: a player with your mod can join a
+ * server without it, and the other way round. The {@code send*} methods
+ * therefore skip players whose client cannot receive a channel; use
+ * {@link #canSend} (or {@link #canSendToServer} on the client) to find out
+ * yourself, e.g. to fall back to chat text.
+ * On Forge every Mycel packet shares Mycel's own channel, so there
+ * {@code canSend} reports whether the client has Mycel at all.
+ *
  * <p>On Fabric, packets registered after Mycel's entrypoint ran need one extra
- * {@code FabricNetworking.flush()} call from the mod's entrypoint - see the
- * example mod. On Forge/NeoForge the payload event always fires after every
- * mod constructor, so nothing extra is needed.
+ * {@code FabricNetworking.flush()} call from the mod's main entrypoint and
+ * {@code FabricNetworking.flushClient()} from its client entrypoint - see the
+ * example mod. Both are idempotent. On Forge/NeoForge the payload event always
+ * fires after every mod constructor, so nothing extra is needed.
  */
 public final class MycelNetwork {
     private static final Map<String, PacketDefinition<?>> DEFINITIONS = new LinkedHashMap<>();
@@ -68,27 +78,47 @@ public final class MycelNetwork {
         MycelLog.debug("Registered {} packet {}", definition.direction(), key);
     }
 
-    /** All registered definitions, in registration order. Used by the loader wiring. */
+    /**
+     * All registered definitions, in registration order. Used by the loader wiring.
+     *
+     * @hidden
+     */
     public static synchronized List<PacketDefinition<?>> definitions() {
         return Collections.unmodifiableList(new ArrayList<>(DEFINITIONS.values()));
     }
 
-    /** Sends a clientbound packet to one player. Call on the server thread. */
+    /**
+     * Whether {@code player}'s client can receive {@code definition}'s channel,
+     * i.e. has the mod installed. Call on the server thread.
+     */
+    public static boolean canSend(ServerPlayer player, PacketDefinition<?> definition) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(definition, "definition");
+        return NetworkHooks.isPresent(player, definition.id());
+    }
+
+    /**
+     * Sends a clientbound packet to one player. Call on the server thread.
+     * Does nothing when the player's client lacks the channel (see {@link #canSend}).
+     */
     public static <T extends CustomPacketPayload> void sendToPlayer(ServerPlayer player,
             PacketDefinition<T> definition, T payload) {
         Objects.requireNonNull(player, "player");
         checkDirection(definition, PacketDirection.TO_CLIENT);
-        player.connection.send(new ClientboundCustomPayloadPacket(payload));
+        if (canSend(player, definition)) {
+            NetworkHooks.sendToClient(player, payload);
+        }
     }
 
-    /** Sends a clientbound packet to every connected player. Call on the server thread. */
+    /** Sends a clientbound packet to every connected player that can receive it. Call on the server thread. */
     public static <T extends CustomPacketPayload> void sendToAll(MinecraftServer server,
             PacketDefinition<T> definition, T payload) {
         Objects.requireNonNull(server, "server");
         checkDirection(definition, PacketDirection.TO_CLIENT);
-        ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(payload);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            player.connection.send(packet);
+            if (canSend(player, definition)) {
+                NetworkHooks.sendToClient(player, payload);
+            }
         }
     }
 
@@ -101,7 +131,6 @@ public final class MycelNetwork {
         Objects.requireNonNull(level, "level");
         Objects.requireNonNull(pos, "pos");
         checkDirection(definition, PacketDirection.TO_CLIENT);
-        ClientboundCustomPayloadPacket packet = new ClientboundCustomPayloadPacket(payload);
         int centerX = pos.getMiddleBlockX();
         int centerZ = pos.getMiddleBlockZ();
         int rangeBlocks = Math.max(256, level.getServer().getPlayerList().getViewDistance() * 16 + 64);
@@ -112,15 +141,25 @@ public final class MycelNetwork {
             }
             double dx = player.getX() - centerX;
             double dz = player.getZ() - centerZ;
-            if (dx * dx + dz * dz <= rangeSquared) {
-                player.connection.send(packet);
+            if (dx * dx + dz * dz <= rangeSquared && canSend(player, definition)) {
+                NetworkHooks.sendToClient(player, payload);
             }
         }
     }
 
     /**
-     * Sends a serverbound packet. Must only be called from client code:
-     * the method references client classes and is never invoked on a server.
+     * Whether the server this client is connected to has {@code definition}'s
+     * channel, i.e. runs the mod. {@code false} when not connected. Client only.
+     */
+    public static boolean canSendToServer(PacketDefinition<?> definition) {
+        Objects.requireNonNull(definition, "definition");
+        return Minecraft.getInstance().getConnection() != null && NetworkHooks.isPresentOnServer(definition.id());
+    }
+
+    /**
+     * Sends a serverbound packet. Does nothing when the server lacks the
+     * channel (see {@link #canSendToServer}). Must only be called from client
+     * code: the method references client classes and is never invoked on a server.
      */
     public static <T extends CustomPacketPayload> void sendToServer(PacketDefinition<T> definition, T payload) {
         checkDirection(definition, PacketDirection.TO_SERVER);
@@ -129,7 +168,15 @@ public final class MycelNetwork {
             MycelLog.warn("sendToServer dropped: not connected to a server");
             return;
         }
-        connection.send(new ServerboundCustomPayloadPacket(payload));
+        if (!NetworkHooks.isPresentOnServer(definition.id())) {
+            return;
+        }
+        var sender = NetworkHooks.serverSender();
+        if (sender != null) {
+            sender.accept(payload);
+        } else {
+            connection.send(new ServerboundCustomPayloadPacket(payload));
+        }
     }
 
     private static void checkDirection(PacketDefinition<?> definition, PacketDirection expected) {

@@ -7,6 +7,50 @@ bump major. It ships as one universal jar for Minecraft 26.3
 (Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.4.0] - 2026-10-25
+
+### Added
+
+- API docs at https://api.mycelium-gg.org (standard Javadoc, rebuilt for
+  every release). Mycel now promises semantic versioning for everything
+  shown there; `my.celium.org.internal` stays private.
+- `MycelDataFile`: a mod's own JSON data file with atomic writes and a size
+  cap. A file that cannot be read is kept as `<name>.broken` instead of being
+  overwritten by the next save. `inConfigDir`, `inWorld` (saved with the world)
+  and `at`; typed `read(type, fallback)` / `write(value)` through Gson.
+- `MycelTesting.useConfigDir(dir)` for headless unit tests, replacing the
+  hand-written `PlatformService` stubs and `internal.PlatformHolder` calls.
+- `MycelNetwork.canSend(player, packet)` and, on the client,
+  `canSendToServer(packet)`: whether the other side has the channel. All
+  senders, `sendToServer` included, now skip a peer without it instead of
+  sending a packet NeoForge would reject.
+- `MycelRegistry.registerWithKey(name, key -> ...)` and `key(name)`, for
+  items and blocks, whose properties need `setId(key)` on Minecraft 26.x.
+- Update notices in game: `/mycel mods` marks mods with an update (`↑ 1.2.0`),
+  and operators (or the singleplayer host) get one chat line per session
+  listing them. New `notifyOpsOfUpdates` flag in `mycel.json` (default `true`).
+
+### Fixed
+
+- Fabric: a serverbound packet registered through `MycelNetwork` crashed the
+  client with "already registered" once both `FabricNetworking.flush()` and
+  `flushClient()` ran.
+- NeoForge: packet channels were registered as required, so a player with a
+  Mycel mod could not join a server without it (and the other way round).
+  They are optional now, and senders skip players without the channel.
+- Forge: every `MycelNetwork` send kicked the receiving player ("cannot be
+  cast to ForgePayload"): payloads went out as plain vanilla packets, which
+  Forge's channel refuses to encode. They now go through the channel.
+- Forge: Mycel's channel is optional too. With packets in both directions the
+  channel was built twice, so every packet was handled twice.
+- The update checker kept using a closed thread pool after leaving a
+  singleplayer world, so later checks silently failed.
+
+### Deprecated
+
+- `InventoryUtil.holdOne`: it only ever reported whether a match exists and
+  never moved anything into the hand. Use `findSlot`. Removed in 2.0.
+
 ## [1.3.1] - 2026-10-23
 
 ### Added

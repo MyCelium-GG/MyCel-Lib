@@ -43,18 +43,23 @@ public final class MycelEvents {
     }
 
     // Called by the loader modules. Not public API (but must be visible across modules).
+
+    /** @hidden */
     public static void firePlayerJoin(PlayerJoinEvent event) {
         fire(JOIN, event, "PlayerJoin");
     }
 
+    /** @hidden */
     public static void firePlayerLeave(PlayerLeaveEvent event) {
         fire(LEAVE, event, "PlayerLeave");
     }
 
+    /** @hidden */
     public static void fireServerLifecycle(ServerLifecycleEvent event) {
         fire(LIFECYCLE, event, "ServerLifecycle");
     }
 
+    /** @hidden */
     public static void fireEntityReplaced(EntityReplacedEvent event) {
         fire(REPLACED, event, "EntityReplaced");
     }

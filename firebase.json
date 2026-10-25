@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "public": "common/build/docs/javadoc",
+    "cleanUrls": false,
+    "headers": [
+      {
+        "source": "**/*.@(html|js|css)",
+        "headers": [{ "key": "Cache-Control", "value": "max-age=3600" }]
+      }
+    ]
+  }
+}

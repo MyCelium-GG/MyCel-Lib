@@ -6,6 +6,7 @@ import my.celium.org.config.ConfigBuilder;
 import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.event.MycelEvents;
+import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
 import my.celium.org.network.MycelNetwork;
 import my.celium.org.network.PacketDefinition;
@@ -20,7 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * A tiny QoL mod built <em>only</em> on the Mycel API: one metadata block,
- * one config, one event subscription, one packet, one translation key.
+ * one config, one event subscription, a packet each way, one translation key.
  * Roughly sixty lines of feature code - everything repetitive (file IO,
  * loader events, payload registration, screen, diagnostics) comes from Mycel.
  */
@@ -35,6 +36,7 @@ public final class ExampleMod {
     public static ConfigValue<String> greeting;
     public static MycelConfig config;
     public static PacketDefinition<GreetPacket> greetPacket;
+    public static PacketDefinition<SeenPacket> seenPacket;
 
     private ExampleMod() {
     }
@@ -52,6 +54,10 @@ public final class ExampleMod {
         greetPacket = PacketDefinition.toClient(GreetPacket.TYPE, GreetPacket.CODEC,
                 (packet, context) -> ClientGreeting.show(packet.message()));
         MycelNetwork.register(META, greetPacket);
+        // The client answers once it showed the greeting: proves the serverbound direction.
+        seenPacket = PacketDefinition.toServer(SeenPacket.TYPE, SeenPacket.CODEC,
+                (packet, context) -> MycelLog.infoMod(ID, "{} saw the greeting", context.sender().getName().getString()));
+        MycelNetwork.register(META, seenPacket);
 
         MycelEvents.onPlayerJoin(event -> onJoin(event.player()));
     }
@@ -85,6 +91,18 @@ public final class ExampleMod {
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             CODEC.encode(buf, packet);
             return CODEC.decode(buf);
+        }
+    }
+
+    /** Serverbound packet: the client confirms it showed the greeting. */
+    public record SeenPacket() implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<SeenPacket> TYPE =
+                new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(ID, "seen"));
+        public static final StreamCodec<FriendlyByteBuf, SeenPacket> CODEC = StreamCodec.unit(new SeenPacket());
+
+        @Override
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
     }
 }

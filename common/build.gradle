@@ -65,3 +65,19 @@ sourceSets.configureEach {
         }
     }
 }
+
+// API docs, published at https://api.mycelium-gg.org (see firebase.json).
+// Internal packages are left out; loader-only members carry @hidden.
+tasks.named('javadoc', Javadoc) {
+    exclude 'my/celium/org/internal/**'
+    title = "Mycel ${project.version} API"
+    options {
+        windowTitle = "Mycel ${project.version} API"
+        overview = file('src/main/javadoc/overview.html').absolutePath
+        encoding = 'UTF-8'
+        // Report real doc errors, not every undocumented parameter.
+        addBooleanOption('Xdoclint:all,-missing', true)
+        links 'https://docs.oracle.com/en/java/javase/25/docs/api/'
+        addStringOption('bottom', "Mycel ${project.version} &middot; MIT licensed &middot; <a href=\"https://github.com/MyCelium-GG/MyCel-Lib\">Source</a> &middot; <a href=\"https://wiki.mycelium-gg.org/developing\">Wiki</a>")
+    }
+}

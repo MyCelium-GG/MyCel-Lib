@@ -57,6 +57,17 @@ class MycelTest {
     }
 
     @Test
+    void versionMatchesGradleProperties() throws Exception {
+        // Tests run from the common/ project directory.
+        java.util.Properties gradle = new java.util.Properties();
+        try (var in = java.nio.file.Files.newBufferedReader(Path.of("..", "gradle.properties"))) {
+            gradle.load(in);
+        }
+        assertEquals(gradle.getProperty("version"), Mycel.VERSION,
+                "Mycel.VERSION must match gradle.properties");
+    }
+
+    @Test
     void unknownConfigIsNull() {
         assertNull(Mycel.getConfig("no-such-mod-anywhere"));
     }

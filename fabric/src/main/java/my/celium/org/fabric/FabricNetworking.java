@@ -3,6 +3,7 @@ package my.celium.org.fabric;
 import java.util.HashSet;
 import java.util.Set;
 
+import my.celium.org.internal.NetworkHooks;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.network.MycelNetwork;
 import my.celium.org.network.PacketContext;
@@ -20,6 +21,7 @@ import net.minecraft.resources.Identifier;
  */
 public final class FabricNetworking {
     private static final Set<Identifier> SERVERBOUND = new HashSet<>();
+    private static final Set<Identifier> SERVERBOUND_TYPES = new HashSet<>();
     private static final Set<Identifier> CLIENTBOUND_TYPES = new HashSet<>();
     private static final Set<Identifier> CLIENTBOUND_HANDLERS = new HashSet<>();
 
@@ -28,6 +30,7 @@ public final class FabricNetworking {
 
     /** Registers serverbound packets (call from the main entrypoint; idempotent). */
     public static synchronized void flush() {
+        NetworkHooks.setPresence((player, id) -> ServerPlayNetworking.canSend(player, id));
         for (PacketDefinition<?> definition : MycelNetwork.definitions()) {
             if (definition.direction() == PacketDirection.TO_SERVER) {
                 registerServerbound(definition);
@@ -39,6 +42,7 @@ public final class FabricNetworking {
 
     /** Registers clientbound handlers (call from the client entrypoint; idempotent). */
     public static synchronized void flushClient() {
+        NetworkHooks.setServerPresence(ClientPlayNetworking::canSend);
         for (PacketDefinition<?> definition : MycelNetwork.definitions()) {
             if (definition.direction() == PacketDirection.TO_CLIENT) {
                 registerClientboundHandler(definition);
@@ -66,6 +70,11 @@ public final class FabricNetworking {
     }
 
     private static <T extends CustomPacketPayload> void registerServerboundType(PacketDefinition<T> definition) {
+        // flush() and flushClient() both reach here on a client; Fabric throws
+        // "already registered" on the second call.
+        if (!SERVERBOUND_TYPES.add(definition.id())) {
+            return;
+        }
         PayloadTypeRegistry.serverboundPlay().register(definition.type(), definition.codec());
     }
 

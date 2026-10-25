@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import my.celium.org.Mycel;
+import my.celium.org.internal.NetworkHooks;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.network.MycelNetwork;
 import my.celium.org.network.PacketContext;
@@ -33,12 +34,18 @@ import net.minecraftforge.network.payload.PayloadProtocol;
  * dependent mods' packets are included - and handlers are scheduled onto the
  * game thread via {@code enqueueWork}. Handler lambdas are server-safe;
  * client-only behaviour lives in the mod-provided handler.
+ *
+ * <p>The channel is optional both ways, so a client with Mycel can join a
+ * server without it and the other way round. Every Mycel packet shares the
+ * channel, so {@code MycelNetwork.canSend} can only tell whether the other side has
+ * Mycel, not one particular mod.
  */
 public final class ForgeNetworking {
     private static final Set<Identifier> REGISTERED = new HashSet<>();
     private static volatile boolean built;
     private static PayloadFlow<RegistryFriendlyByteBuf, CustomPacketPayload> serverFlow;
     private static PayloadFlow<RegistryFriendlyByteBuf, CustomPacketPayload> clientFlow;
+    private static volatile Channel<CustomPacketPayload> channel;
 
     private ForgeNetworking() {
     }
@@ -60,6 +67,7 @@ public final class ForgeNetworking {
                 .named(Mycel.MOD_ID)
                 .networkProtocolVersion(1)
                 .acceptedVersions(Channel.VersionTest.exact(1))
+                .optional()
                 .payloadChannel()
                 .play();
         serverFlow = play.serverbound();
@@ -77,13 +85,27 @@ public final class ForgeNetworking {
                 }
             }
         }
-        if (serverCount > 0) {
-            serverFlow.build();
-        }
-        if (clientCount > 0) {
-            clientFlow.build();
+        // Both flows belong to one builder: build() creates the whole channel,
+        // and calling it once per flow would register every handler twice.
+        if (serverCount + clientCount > 0) {
+            channel = serverFlow.build();
         }
         built = true;
+        NetworkHooks.setPresence((player, id) -> {
+            Channel<CustomPacketPayload> current = channel;
+            return current != null && current.isRemotePresent(player.connection.getConnection());
+        });
+        // Forge's play channel only encodes payloads sent through it.
+        NetworkHooks.setSenders(
+                (player, payload) -> channel.send(payload, player.connection.getConnection()),
+                payload -> channel.send(payload,
+                        net.minecraft.client.Minecraft.getInstance().getConnection().getConnection()));
+        // Only ever asked on the client, so the client class stays unloaded on servers.
+        NetworkHooks.setServerPresence(id -> {
+            Channel<CustomPacketPayload> current = channel;
+            var connection = net.minecraft.client.Minecraft.getInstance().getConnection();
+            return current != null && connection != null && current.isRemotePresent(connection.getConnection());
+        });
     }
 
     private static <T extends CustomPacketPayload> boolean registerServerbound(
@@ -91,19 +113,23 @@ public final class ForgeNetworking {
         if (!REGISTERED.add(definition.id())) {
             return false;
         }
-        flow.add(definition.type(), adapt(definition.codec()), (payload, context) -> context.enqueueWork(() -> {
-            try {
-                Player sender = context.getSender();
-                ServerPlayer serverPlayer = sender instanceof ServerPlayer player ? player : null;
-                MinecraftServer server = sender != null && sender.level() instanceof ServerLevel level
-                        ? level.getServer()
-                        : null;
-                definition.handler().handle(payload,
-                        new PacketContext(PacketDirection.TO_SERVER, server, serverPlayer));
-            } catch (RuntimeException e) {
-                MycelLog.warn("Serverbound packet {} handler threw: {}", definition.id(), e.toString());
-            }
-        }));
+        flow.add(definition.type(), adapt(definition.codec()), (payload, context) -> {
+            context.enqueueWork(() -> {
+                try {
+                    Player sender = context.getSender();
+                    ServerPlayer serverPlayer = sender instanceof ServerPlayer player ? player : null;
+                    MinecraftServer server = sender != null && sender.level() instanceof ServerLevel level
+                            ? level.getServer()
+                            : null;
+                    definition.handler().handle(payload,
+                            new PacketContext(PacketDirection.TO_SERVER, server, serverPlayer));
+                } catch (RuntimeException e) {
+                    MycelLog.warn("Serverbound packet {} handler threw: {}", definition.id(), e.toString());
+                }
+            });
+            // Unhandled payloads are dispatched again on the game thread, from a buffer already read.
+            context.setPacketHandled(true);
+        });
         return true;
     }
 
@@ -112,13 +138,16 @@ public final class ForgeNetworking {
         if (!REGISTERED.add(definition.id())) {
             return false;
         }
-        flow.add(definition.type(), adapt(definition.codec()), (payload, context) -> context.enqueueWork(() -> {
-            try {
-                definition.handler().handle(payload, new PacketContext(PacketDirection.TO_CLIENT, null, null));
-            } catch (RuntimeException e) {
-                MycelLog.warn("Clientbound packet {} handler threw: {}", definition.id(), e.toString());
-            }
-        }));
+        flow.add(definition.type(), adapt(definition.codec()), (payload, context) -> {
+            context.enqueueWork(() -> {
+                try {
+                    definition.handler().handle(payload, new PacketContext(PacketDirection.TO_CLIENT, null, null));
+                } catch (RuntimeException e) {
+                    MycelLog.warn("Clientbound packet {} handler threw: {}", definition.id(), e.toString());
+                }
+            });
+            context.setPacketHandled(true);
+        });
         return true;
     }
 

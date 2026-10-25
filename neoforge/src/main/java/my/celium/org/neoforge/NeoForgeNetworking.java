@@ -3,6 +3,7 @@ package my.celium.org.neoforge;
 import java.util.HashSet;
 import java.util.Set;
 
+import my.celium.org.internal.NetworkHooks;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.network.MycelNetwork;
 import my.celium.org.network.PacketContext;
@@ -18,6 +19,10 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  * Both directions are registered unconditionally: the handler lambdas are
  * server-safe (client-only work lives in the mod-provided handler, which only
  * runs on the side that receives the packet).
+ *
+ * <p>Channels are optional, so players with a Mycel mod can join servers
+ * without it and the other way round; {@code MycelNetwork} skips players
+ * whose connection lacks a channel instead of letting NeoForge disconnect them.
  */
 public final class NeoForgeNetworking {
     private static final Set<Identifier> REGISTERED = new HashSet<>();
@@ -26,7 +31,13 @@ public final class NeoForgeNetworking {
     }
 
     public static synchronized void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1");
+        PayloadRegistrar registrar = event.registrar("1").optional();
+        NetworkHooks.setPresence((player, id) -> player.connection.hasChannel(id));
+        // Only ever asked on the client, so the client class stays unloaded on servers.
+        NetworkHooks.setServerPresence(id -> {
+            var connection = net.minecraft.client.Minecraft.getInstance().getConnection();
+            return connection != null && connection.hasChannel(id);
+        });
         for (PacketDefinition<?> definition : MycelNetwork.definitions()) {
             if (definition.direction() == PacketDirection.TO_SERVER) {
                 registerServerbound(registrar, definition);

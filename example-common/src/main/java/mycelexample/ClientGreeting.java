@@ -1,5 +1,6 @@
 package mycelexample;
 
+import my.celium.org.network.MycelNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
@@ -19,6 +20,7 @@ public final class ClientGreeting {
     public static void show(String message) {
         if (Minecraft.getInstance().player != null) {
             Minecraft.getInstance().player.sendSystemMessage(Component.literal(message));
+            MycelNetwork.sendToServer(ExampleMod.seenPacket, new ExampleMod.SeenPacket());
         }
     }
 }

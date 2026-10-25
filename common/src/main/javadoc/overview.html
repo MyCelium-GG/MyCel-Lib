@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Mycel API</title></head>
+<body>
+<p>Mycel is the shared core library of the MyCelium mods: configuration, events,
+scheduling, networking, registration, data files and chat helpers that work the
+same on Fabric, Forge and NeoForge.</p>
+
+<h1>Getting started</h1>
+<p>Add JitPack and the library (use a release tag):</p>
+<pre>
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+dependencies {
+    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:VERSION'   // Fabric
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:VERSION'   // Forge / NeoForge
+}
+</pre>
+<p>Then, from each loader entrypoint:</p>
+<pre>{@code
+public static final ModMetadata META = ModMetadata.builder("mymod", "My Mod", "1.0.0").build();
+
+public static void init() {
+    Mycel.initialize();
+    Mycel.registerMod(META);
+    ConfigBuilder builder = Mycel.config(META);
+    ENABLED = builder.booleanValue("enabled", true, "Whether the feature runs.");
+    CONFIG = builder.build();
+}
+}</pre>
+<p>Start at {@link my.celium.org.Mycel}. Guides, examples and the player
+documentation live on the <a href="https://wiki.mycelium-gg.org/developing">MyCelium wiki</a>.</p>
+
+<h1>Compatibility</h1>
+<p>Mycel follows semantic versioning: within one major version, code compiled
+against an older release keeps working. Anything in
+<code>my.celium.org.internal</code>, and members not shown on this site, are not
+API and may change in any release. Deprecated members are removed only in the
+next major version.</p>
+</body>
+</html>

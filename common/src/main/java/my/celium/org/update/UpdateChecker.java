@@ -48,7 +48,8 @@ public final class UpdateChecker {
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .connectTimeout(CONNECT_TIMEOUT)
             .followRedirects(HttpClient.Redirect.NORMAL)
-            .executor(MycelExecutors.async())
+            // Look the pool up per task: MycelExecutors replaces it after a server stop.
+            .executor(task -> MycelExecutors.async().execute(task))
             .build();
 
     private static final Map<String, UpdateResult> CACHE = new ConcurrentHashMap<>();
@@ -57,7 +58,11 @@ public final class UpdateChecker {
     private UpdateChecker() {
     }
 
-    /** Called by {@code Mycel} from the global config; mods should not call this. */
+    /**
+     * Called by {@code Mycel} from the global config; mods should not call this.
+     *
+     * @hidden
+     */
     public static void setGloballyEnabled(boolean enabled) {
         globallyEnabled = enabled;
     }

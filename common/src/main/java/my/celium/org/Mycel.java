@@ -15,7 +15,10 @@ import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.diag.MycelDump;
 import my.celium.org.internal.ClientProxy;
+import my.celium.org.event.MycelEvents;
+import my.celium.org.event.ServerLifecycleEvent;
 import my.celium.org.internal.PlatformHolder;
+import my.celium.org.internal.UpdateNotices;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.metadata.ModMetadata;
 import my.celium.org.platform.LoadedMod;
@@ -53,7 +56,7 @@ public final class Mycel {
     public static final String MOD_ID = "mycel";
 
     /** Mycel's version. Must match {@code gradle.properties}. */
-    public static final String VERSION = "1.3.1";
+    public static final String VERSION = "1.4.0";
 
     /** Mycel's own metadata (registered automatically on {@link #initialize()}). */
     public static final ModMetadata METADATA =
@@ -89,7 +92,17 @@ public final class Mycel {
                 "Whether Mycel may check for updates to registered mods (async, cached, never blocks).");
         ConfigValue<Boolean> dumpUploads = global.booleanValue("allowDumpUploads", true,
                 "Whether /mycel dump may upload its report to pastes.dev. Off: reports are only saved to mycel-dumps/.");
+        ConfigValue<Boolean> notices = global.booleanValue("notifyOpsOfUpdates", true,
+                "Whether operators (and the singleplayer host) get one chat line per session listing mod updates.");
         global.build(); // ConfigBuilder.build() registers the handle with Mycel.
+        UpdateNotices.setEnabled(notices.get());
+        notices.onChange(UpdateNotices::setEnabled);
+        MycelEvents.onPlayerJoin(event -> UpdateNotices.onJoin(event.player()));
+        MycelEvents.onServerLifecycle(event -> {
+            if (event.phase() == ServerLifecycleEvent.Phase.STOPPED) {
+                UpdateNotices.clear();
+            }
+        });
         MycelDump.setUploadsEnabled(dumpUploads.get());
         dumpUploads.onChange(MycelDump::setUploadsEnabled);
         updateCheckerFlag = flag;
@@ -144,7 +157,11 @@ public final class Mycel {
         return CONFIGS.get(modId);
     }
 
-    /** Called by {@link ConfigBuilder#build()}; one config per mod. */
+    /**
+     * Called by {@link ConfigBuilder#build()}; one config per mod.
+     *
+     * @hidden
+     */
     public static synchronized void registerConfig(MycelConfig config) {
         Objects.requireNonNull(config, "config");
         if (CONFIGS.containsKey(config.modId())) {

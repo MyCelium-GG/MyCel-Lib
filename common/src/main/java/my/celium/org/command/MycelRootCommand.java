@@ -51,6 +51,8 @@ import net.minecraft.server.level.ServerPlayer;
  *
  * <p>Keys are {@code key} for root values or {@code category.key} for
  * categorised ones. A bare key works when it is unique across categories.
+ *
+ * @hidden
  */
 public final class MycelRootCommand {
     private MycelRootCommand() {

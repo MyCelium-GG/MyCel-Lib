@@ -7,7 +7,7 @@
 // footer reopens the choice, and withdrawing deletes the Analytics cookies.
 // With GA_ID empty the script does nothing at all: no banner, no link.
 (function () {
-  var GA_ID = "";
+  var GA_ID = "G-3CW2H9GV62";
   var PRIVACY_URL = "https://wiki.mycelium-gg.org/privacy#analytics";
   var CONSENT_COOKIE = "mycelium-consent";
   var ONE_YEAR = 60 * 60 * 24 * 365;

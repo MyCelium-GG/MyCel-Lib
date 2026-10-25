@@ -28,7 +28,11 @@ jobs:
       - name: Install a virtual display
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libopenal1
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils libopenal1
+      - name: Check the virtual display has OpenGL
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" glxinfo -B | grep -E "OpenGL (renderer|core profile version)"
       - name: Compile the example mod
         run: ./gradlew :example-${{ matrix.loader }}:classes --no-daemon
       # A fresh runner also downloads the game's assets during this run.
@@ -36,7 +40,10 @@ jobs:
         env:
           SMOKE_SECONDS: "420"
           ALSOFT_DRIVERS: "null"
-        run: xvfb-run -a -s "-screen 0 1280x720x24" scripts/smoke.sh ${{ matrix.loader }}
+          # No GPU on the runner: Mesa's software renderer, on a display with GLX.
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          GALLIUM_DRIVER: llvmpipe
+        run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" scripts/smoke.sh ${{ matrix.loader }}
       - name: Keep the logs
         if: failure()
         uses: actions/upload-artifact@v4

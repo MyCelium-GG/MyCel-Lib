@@ -28,11 +28,15 @@ jobs:
       - name: Install a virtual display
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils libopenal1
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils mesa-vulkan-drivers vulkan-tools libopenal1
       - name: Check the virtual display has OpenGL
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
-        run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" glxinfo -B | grep -E "OpenGL (renderer|core profile version)"
+        run: |
+          xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" glxinfo -B | grep -E "OpenGL (renderer|core profile version)"
+          # Which window formats exist (the game needs one with alpha, depth and stencil).
+          xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render" glxinfo | grep -A3 "GLX Visuals" | head -4 || true
+          vulkaninfo --summary 2>/dev/null | grep -E "deviceName|VK_KHR_surface" | head -3 || true
       - name: Compile the example mod
         run: ./gradlew :example-${{ matrix.loader }}:classes --no-daemon
       # A fresh runner also downloads the game's assets during this run.
@@ -43,7 +47,7 @@ jobs:
           # No GPU on the runner: Mesa's software renderer, on a display with GLX.
           LIBGL_ALWAYS_SOFTWARE: "1"
           GALLIUM_DRIVER: llvmpipe
-        run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" scripts/smoke.sh ${{ matrix.loader }}
+        run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +extension RANDR +render -noreset" scripts/smoke.sh ${{ matrix.loader }}
       - name: Keep the logs
         if: failure()
         uses: actions/upload-artifact@v4

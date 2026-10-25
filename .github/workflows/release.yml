@@ -63,3 +63,11 @@ jobs:
           fabric-require: ""
           files: |
             all=universal/build/libs/mycel-*.jar
+      # From main, like the CurseForge step. Only for new tags: re-running an
+      # old release by hand must not announce it again.
+      - name: Announce on Discord
+        if: ${{ github.event_name == 'push' }}
+        uses: MyCelium-GG/MyCel-Lib/.github/actions/discord-announce@main
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          version: ${{ env.TAG }}

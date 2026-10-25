@@ -1,0 +1,33 @@
+name: Discord announcement
+description: >
+  Posts a MyCelium release to a Discord channel through a webhook: the mod's
+  name and download link from the wiki's mods.json (looked up by mod_id in
+  gradle.properties), and the release notes from CHANGELOG.md. Skips (with a
+  notice) when the webhook is missing, so it is safe to call before one exists.
+
+inputs:
+  webhook:
+    description: Discord webhook URL (pass secrets.DISCORD_WEBHOOK)
+    required: true
+  version:
+    description: Version being released (the tag)
+    required: true
+  mod-id:
+    description: "Mod id in mods.json (default: mod_id in gradle.properties)"
+    default: ""
+  changelog:
+    description: Path of the changelog
+    default: CHANGELOG.md
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        DISCORD_WEBHOOK: ${{ inputs.webhook }}
+      run: >
+        python3 "${{ github.action_path }}/announce.py"
+        --version "${{ inputs.version }}"
+        --mod-id "${{ inputs.mod-id }}"
+        --changelog "${{ inputs.changelog }}"
+        --repo "${{ github.server_url }}/${{ github.repository }}"

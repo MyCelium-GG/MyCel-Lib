@@ -1,0 +1,19 @@
+name: buildSrc check
+description: >
+  Fails when the mod's buildSrc differs from the shared MyCelium copy kept
+  next to this action, so the 11 mod builds can never drift apart. To change
+  the build logic, edit the copy here, then run scripts/sync_buildsrc.sh to
+  write it into every mod.
+
+runs:
+  using: composite
+  steps:
+    - name: buildSrc matches the shared copy
+      shell: bash
+      run: |
+        if diff -r --exclude=build --exclude=.gradle "$GITHUB_ACTION_PATH/buildSrc" buildSrc; then
+          echo "buildSrc matches the shared copy."
+        else
+          echo "::error::buildSrc differs from MyCel-Lib/.github/actions/buildsrc-check/buildSrc. Change the shared copy and run scripts/sync_buildsrc.sh instead of editing one mod."
+          exit 1
+        fi

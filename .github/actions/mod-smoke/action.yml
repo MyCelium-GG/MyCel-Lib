@@ -1,0 +1,39 @@
+name: Mod smoke test
+description: >
+  Starts a MyCelium mod on one loader: a dev server, plus a dev client on a
+  virtual display that joins it and stays connected. Catches what unit tests
+  cannot: crashes at start-up, broken registration, players kicked on join.
+  The mod's loader build.gradle files must pass -PquickPlay to the client as
+  --quickPlayMultiplayer (see any mod's runs block).
+
+inputs:
+  loader:
+    description: fabric, neoforge or forge
+    required: true
+  mod-id:
+    description: The mod id, as in gradle.properties
+    required: true
+  seconds:
+    description: Cap for the whole run, including the first asset download
+    default: "420"
+
+runs:
+  using: composite
+  steps:
+    - name: Install a virtual display
+      shell: bash
+      run: |
+        sudo apt-get update -q
+        sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils mesa-vulkan-drivers vulkan-tools libopenal1
+    - name: Compile the mod
+      shell: bash
+      run: ./gradlew :${{ inputs.loader }}:classes --no-daemon
+    - name: Join a dev server with a dev client
+      shell: bash
+      env:
+        SMOKE_SECONDS: ${{ inputs.seconds }}
+        ALSOFT_DRIVERS: "null"
+        # No GPU on the runner: Mesa's software renderer, on a display with GLX.
+        LIBGL_ALWAYS_SOFTWARE: "1"
+        GALLIUM_DRIVER: llvmpipe
+      run: xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +extension RANDR +render -noreset" "$GITHUB_ACTION_PATH/smoke.sh" ${{ inputs.loader }} ${{ inputs.mod-id }}

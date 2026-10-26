@@ -24,7 +24,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update -q
-        sudo apt-get install -y -q --no-install-recommends xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils mesa-vulkan-drivers vulkan-tools libopenal1
+        sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils mesa-vulkan-drivers vulkan-tools libopenal1
     - name: Compile the mod
       shell: bash
       run: ./gradlew :${{ inputs.loader }}:classes --no-daemon

@@ -84,4 +84,17 @@ tasks.named('javadoc', Javadoc) {
         links 'https://docs.oracle.com/en/java/javase/25/docs/api/'
         addStringOption('bottom', "Mycel ${project.version} &middot; MIT licensed &middot; <a href=\"https://github.com/MyCelium-GG/MyCel-Lib\">Source</a> &middot; <a href=\"https://wiki.mycelium-gg.org/developing\">Wiki</a>")
     }
+    // Link previews (Discord, Reddit, ...) for the start page; Javadoc has no option for meta tags.
+    doLast {
+        def index = new File(destinationDir, 'index.html')
+        def tags = """<meta property="og:site_name" content="MyCelium">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mycel ${project.version} API">
+<meta property="og:description" content="Javadoc for Mycel, the shared library of the MyCelium Minecraft mods: config, events, networking, scheduling and more on Fabric, Forge and NeoForge.">
+<meta property="og:url" content="https://api.mycelium-gg.org/">
+<meta property="og:image" content="https://wiki.mycelium-gg.org/assets/logo.png">
+<meta name="twitter:card" content="summary">
+"""
+        index.text = index.text.replaceFirst('</head>', java.util.regex.Matcher.quoteReplacement(tags + '</head>'))
+    }
 }

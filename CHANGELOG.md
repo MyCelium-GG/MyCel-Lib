@@ -7,6 +7,16 @@ bump major. It ships as one universal jar for Minecraft 26.3
 (Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.4.1] - 2026-10-26
+
+### Changed
+
+- The API docs at https://api.mycelium-gg.org now describe every public
+  class and method, with every parameter, return value and exception, plus
+  examples for networking, events, the scheduler, commands, chat messages
+  and translations.
+- No behavior changes: mods built against 1.4.0 work unchanged.
+
 ## [1.4.0] - 2026-10-25
 
 ### Added

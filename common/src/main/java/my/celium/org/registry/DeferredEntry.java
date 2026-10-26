@@ -7,6 +7,8 @@ import java.util.function.Supplier;
  * Lazy handle for one registered object. Behaves like a memoised
  * {@link Supplier}: {@link #get()} returns the registered value once the
  * loader has created it.
+ *
+ * @param <T> the registered object's type
  */
 public final class DeferredEntry<T> implements Supplier<T> {
     private final Supplier<T> delegate;
@@ -20,7 +22,11 @@ public final class DeferredEntry<T> implements Supplier<T> {
         return delegate.get();
     }
 
-    /** Whether the underlying object exists yet. Never throws. */
+    /**
+     * Whether the underlying object exists yet. Never throws.
+     *
+     * @return {@code true} once the loader has created it
+     */
     public boolean isPresent() {
         try {
             return get() != null;

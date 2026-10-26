@@ -43,20 +43,38 @@ public final class MycelConfig {
         }
     }
 
+    /**
+     * The mod this config belongs to.
+     *
+     * @return its metadata
+     */
     public ModMetadata metadata() {
         return metadata;
     }
 
+    /**
+     * The owning mod's id, also the file name ({@code config/<modid>.json}).
+     *
+     * @return the mod id
+     */
     public String modId() {
         return metadata.id();
     }
 
-    /** All values in declaration order. */
+    /**
+     * All values in declaration order.
+     *
+     * @return an unmodifiable list
+     */
     public List<ConfigValue<?>> values() {
         return Collections.unmodifiableList(values);
     }
 
-    /** Distinct categories in first-use order (root {@code ""} first when present). */
+    /**
+     * Distinct categories in first-use order (root {@code ""} first when present).
+     *
+     * @return an unmodifiable list
+     */
     public List<String> categories() {
         List<String> result = new ArrayList<>();
         for (ConfigValue<?> value : values) {
@@ -68,7 +86,12 @@ public final class MycelConfig {
         return Collections.unmodifiableList(result);
     }
 
-    /** Values of one category in declaration order. */
+    /**
+     * Values of one category in declaration order.
+     *
+     * @param category the category, {@code ""} for the root level
+     * @return an unmodifiable list, empty for an unknown category
+     */
     public List<ConfigValue<?>> valuesIn(String category) {
         List<ConfigValue<?>> result = new ArrayList<>();
         for (ConfigValue<?> value : values) {
@@ -82,6 +105,7 @@ public final class MycelConfig {
     /**
      * Finds a value by path ({@code "key"} or {@code "category.key"}).
      *
+     * @param path the path, case-insensitive
      * @return the value, or {@code null} when nothing (or ambiguous bare key) matches
      * @see ConfigStrings#find(MycelConfig, String)
      */
@@ -89,10 +113,20 @@ public final class MycelConfig {
         return ConfigStrings.find(this, path);
     }
 
+    /**
+     * The JSON file this config is saved in.
+     *
+     * @return the file path
+     */
     public Path file() {
         return file;
     }
 
+    /**
+     * The schema version set with {@link ConfigBuilder#schemaVersion(int)}.
+     *
+     * @return the version, {@code 1} by default
+     */
     public int schemaVersion() {
         return schemaVersion;
     }
@@ -138,7 +172,11 @@ public final class MycelConfig {
         save();
     }
 
-    /** Returns {@code true} when every value holds its default. */
+    /**
+     * Returns {@code true} when every value holds its default.
+     *
+     * @return whether nothing was changed
+     */
     public boolean isDefault() {
         for (ConfigValue<?> value : values) {
             if (!value.isDefault()) {

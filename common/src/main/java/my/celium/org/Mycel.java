@@ -118,7 +118,11 @@ public final class Mycel {
                 platform.platform().displayName(), platform.loaderVersion(), platform.minecraftVersion());
     }
 
-    /** Whether {@link #initialize()} has run. */
+    /**
+     * Whether {@link #initialize()} has run.
+     *
+     * @return {@code true} once it has run
+     */
     public static boolean isInitialized() {
         return initialized;
     }
@@ -126,6 +130,9 @@ public final class Mycel {
     /**
      * Registers a dependent mod. Duplicate ids keep the first registration
      * (warns). Queues an async update check when the mod opted in.
+     *
+     * @param metadata the mod to register
+     * @return the registered metadata: {@code metadata}, or the first one for a duplicate id
      */
     public static synchronized ModMetadata registerMod(ModMetadata metadata) {
         Objects.requireNonNull(metadata, "metadata");
@@ -142,17 +149,31 @@ public final class Mycel {
         return metadata;
     }
 
-    /** All registered mods in registration order. */
+    /**
+     * All registered mods in registration order.
+     *
+     * @return an unmodifiable snapshot
+     */
     public static synchronized Collection<ModMetadata> getRegisteredMods() {
         return Collections.unmodifiableList(new ArrayList<>(MODS.values()));
     }
 
-    /** Starts a configuration for {@code metadata} (10-30 lines for a typical mod). */
+    /**
+     * Starts a configuration for {@code metadata} (10-30 lines for a typical mod).
+     *
+     * @param metadata the mod the config belongs to
+     * @return a new builder; finish it with {@link ConfigBuilder#build()}
+     */
     public static ConfigBuilder config(ModMetadata metadata) {
         return new ConfigBuilder(Objects.requireNonNull(metadata, "metadata"));
     }
 
-    /** The live config for a mod id, or {@code null} when the mod built none. */
+    /**
+     * The live config for a mod id, or {@code null} when the mod built none.
+     *
+     * @param modId the mod id
+     * @return the config, or {@code null}
+     */
     public static synchronized MycelConfig getConfig(String modId) {
         return CONFIGS.get(modId);
     }
@@ -160,6 +181,7 @@ public final class Mycel {
     /**
      * Called by {@link ConfigBuilder#build()}; one config per mod.
      *
+     * @param config the built config
      * @hidden
      */
     public static synchronized void registerConfig(MycelConfig config) {
@@ -173,56 +195,105 @@ public final class Mycel {
     /**
      * Whether a mod's functionality is enabled. Defaults to {@code true} so a
      * missing toggle never disables a feature by accident.
+     *
+     * @param modId the mod id
+     * @return whether it is enabled
      */
     public static boolean isEnabled(String modId) {
         return ENABLED.getOrDefault(modId, Boolean.TRUE);
     }
 
-    /** Enables/disables a mod at runtime without a restart. */
+    /**
+     * Enables/disables a mod at runtime without a restart.
+     *
+     * @param modId   the mod id
+     * @param enabled the new state
+     */
     public static void setEnabled(String modId, boolean enabled) {
         Objects.requireNonNull(modId, "modId");
         ENABLED.put(modId, enabled);
         MycelLog.infoMod(modId, enabled ? "Functionality enabled" : "Functionality disabled");
     }
 
-    /** Mycel's version. */
+    /**
+     * Mycel's version.
+     *
+     * @return the same as {@link #VERSION}
+     */
     public static String getVersion() {
         return VERSION;
     }
 
+    /**
+     * The loader Mycel is running on.
+     *
+     * @return the loader, {@link Platform#UNKNOWN} in unit tests
+     */
     public static Platform getPlatform() {
         return PlatformHolder.get().platform();
     }
 
-    /** Every mod the loader has loaded (not only Mycel mods). Empty when unknown. */
+    /**
+     * Every mod the loader has loaded (not only Mycel mods). Empty when unknown.
+     *
+     * @return the loaded mods
+     */
     public static List<LoadedMod> getLoadedMods() {
         return PlatformHolder.get().loadedMods();
     }
 
-    /** Minecraft version string. */
+    /**
+     * Minecraft version string.
+     *
+     * @return e.g. {@code "26.3"}
+     */
     public static String getMinecraftVersion() {
         return PlatformHolder.get().minecraftVersion();
     }
 
-    /** Loader version string. */
+    /**
+     * Loader version string.
+     *
+     * @return e.g. {@code "0.19.5"} on Fabric
+     */
     public static String getLoaderVersion() {
         return PlatformHolder.get().loaderVersion();
     }
 
-    /** Whether this is a client environment. */
+    /**
+     * Whether this is a client environment.
+     *
+     * @return {@code true} on the physical client
+     */
     public static boolean isClient() {
         return PlatformHolder.get().isClient();
     }
 
-    /** The loader's {@code config} directory. */
+    /**
+     * The loader's {@code config} directory.
+     *
+     * @return the directory that holds every mod's config file
+     */
     public static Path getConfigDir() {
         return PlatformHolder.get().configDir();
     }
 
+    /**
+     * Whether another mod is present. Never throws.
+     *
+     * @param modId the mod id
+     * @return {@code true} when the loader has it
+     */
     public static boolean isModLoaded(String modId) {
         return PlatformHolder.get().isModLoaded(modId);
     }
 
+    /**
+     * Version of another mod. Never throws.
+     *
+     * @param modId the mod id
+     * @return its version, or {@code null} when absent or unknown
+     */
     public static String getModVersion(String modId) {
         return PlatformHolder.get().getModVersion(modId);
     }
@@ -231,6 +302,10 @@ public final class Mycel {
      * Creates the config screen for {@code modId} (client only). Returns
      * {@code null} on dedicated servers or when the mod has no config - so it
      * is always safe to call; check the result for {@code null}.
+     *
+     * @param parent the screen to return to when it closes
+     * @param modId  the mod whose config to edit
+     * @return the screen, or {@code null}
      */
     public static Screen openConfigScreen(Screen parent, String modId) {
         Object screen = ClientProxy.openConfigScreen(parent, modId);

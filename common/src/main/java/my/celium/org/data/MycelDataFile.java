@@ -71,14 +71,26 @@ public final class MycelDataFile {
         this.maxBytes = maxBytes;
     }
 
-    /** A file at an explicit path. */
+    /**
+     * A file at an explicit path.
+     *
+     * @param mod  the owning mod, named in log lines
+     * @param path where the file lives
+     * @return the file handle; nothing is read or created yet
+     */
     public static MycelDataFile at(ModMetadata mod, Path path) {
         Objects.requireNonNull(mod, "mod");
         Objects.requireNonNull(path, "path");
         return new MycelDataFile(mod.id(), path, DEFAULT_GSON, DEFAULT_MAX_BYTES);
     }
 
-    /** A file in the loader's {@code config} folder, e.g. {@code config/mymod_data.json}. */
+    /**
+     * A file in the loader's {@code config} folder, e.g. {@code config/mymod_data.json}.
+     *
+     * @param mod      the owning mod, named in log lines
+     * @param fileName a plain file name, no folders
+     * @return the file handle; nothing is read or created yet
+     */
     public static MycelDataFile inConfigDir(ModMetadata mod, String fileName) {
         return at(mod, Mycel.getConfigDir().resolve(checkFileName(fileName)));
     }
@@ -87,6 +99,11 @@ public final class MycelDataFile {
      * A file that belongs to the current world, at
      * {@code <world>/data/<modid>/<fileName>}. Use it for state that should
      * travel with the save, not with the player's game folder.
+     *
+     * @param server   the running server, whose world it belongs to
+     * @param mod      the owning mod, named in log lines
+     * @param fileName a plain file name, no folders
+     * @return the file handle; nothing is read or created yet
      */
     public static MycelDataFile inWorld(MinecraftServer server, ModMetadata mod, String fileName) {
         Objects.requireNonNull(server, "server");
@@ -95,12 +112,22 @@ public final class MycelDataFile {
         return at(mod, dir.resolve(checkFileName(fileName)));
     }
 
-    /** The same file, (de)serialized with {@code gson} (e.g. with type adapters). */
+    /**
+     * The same file, (de)serialized with {@code gson} (e.g. with type adapters).
+     *
+     * @param gson the Gson to use
+     * @return a new handle
+     */
     public MycelDataFile withGson(Gson gson) {
         return new MycelDataFile(modId, path, Objects.requireNonNull(gson, "gson"), maxBytes);
     }
 
-    /** The same file with another size cap in bytes. */
+    /**
+     * The same file with another size cap in bytes.
+     *
+     * @param maxBytes the largest file still read, in bytes
+     * @return a new handle
+     */
     public MycelDataFile withMaxBytes(int maxBytes) {
         if (maxBytes <= 0) {
             throw new IllegalArgumentException("maxBytes must be positive");
@@ -108,10 +135,20 @@ public final class MycelDataFile {
         return new MycelDataFile(modId, path, gson, maxBytes);
     }
 
+    /**
+     * Where the file lives.
+     *
+     * @return the path
+     */
     public Path path() {
         return path;
     }
 
+    /**
+     * Whether the file is on disk right now.
+     *
+     * @return {@code true} when it exists as a regular file
+     */
     public boolean exists() {
         return Files.isRegularFile(path);
     }
@@ -120,6 +157,8 @@ public final class MycelDataFile {
      * Reads the file as a JSON object. Missing file: an empty object. Broken
      * file (unreadable, not JSON, not an object, too big): moved aside and an
      * empty object.
+     *
+     * @return the object; never {@code null}
      */
     public JsonObject readObject() {
         JsonElement element = readTree();
@@ -137,12 +176,24 @@ public final class MycelDataFile {
      * Reads the file into {@code type} with this file's Gson. Missing or
      * broken files yield {@code fallback.get()}; a broken file is moved aside
      * first. Never returns {@code null} unless {@code fallback} does.
+     *
+     * @param <T>      the data type
+     * @param type     the class to read into
+     * @param fallback supplies the value for a missing or broken file
+     * @return the data, or the fallback's value
      */
     public <T> T read(Class<T> type, Supplier<T> fallback) {
         return read((Type) type, fallback);
     }
 
-    /** Like {@link #read(Class, Supplier)} for generic types (use a Gson {@code TypeToken}). */
+    /**
+     * Like {@link #read(Class, Supplier)} for generic types (use a Gson {@code TypeToken}).
+     *
+     * @param <T>      the data type
+     * @param type     the type to read into
+     * @param fallback supplies the value for a missing or broken file
+     * @return the data, or the fallback's value
+     */
     public <T> T read(Type type, Supplier<T> fallback) {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(fallback, "fallback");
@@ -162,7 +213,12 @@ public final class MycelDataFile {
         return fallback.get();
     }
 
-    /** Writes {@code value} (serialized with this file's Gson). Returns whether it was saved. */
+    /**
+     * Writes {@code value} (serialized with this file's Gson), atomically.
+     *
+     * @param value the data; a {@code JsonElement} is written as it is
+     * @return whether it was saved (failures are logged, never thrown)
+     */
     public boolean write(Object value) {
         Objects.requireNonNull(value, "value");
         JsonElement tree = value instanceof JsonElement element ? element : gson.toJsonTree(value);
@@ -175,6 +231,7 @@ public final class MycelDataFile {
      * it when the data parsed but your own validation rejected it. Missing
      * files are ignored.
      *
+     * @param reason why, for the log line
      * @return the path the file was moved to, or {@code null} when nothing moved
      */
     public Path quarantine(String reason) {
@@ -197,7 +254,11 @@ public final class MycelDataFile {
         }
     }
 
-    /** Deletes the file if present. Returns whether it is gone. */
+    /**
+     * Deletes the file if present.
+     *
+     * @return whether it is gone (also {@code true} when it never existed)
+     */
     public boolean delete() {
         try {
             Files.deleteIfExists(path);

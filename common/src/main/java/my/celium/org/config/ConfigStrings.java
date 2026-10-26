@@ -21,7 +21,12 @@ public final class ConfigStrings {
     private ConfigStrings() {
     }
 
-    /** Canonical path of a value: {@code key} or {@code category.key}. */
+    /**
+     * Canonical path of a value: {@code key} or {@code category.key}.
+     *
+     * @param value the config value
+     * @return its path
+     */
     public static String pathOf(ConfigValue<?> value) {
         Objects.requireNonNull(value, "value");
         return value.category().isEmpty() ? value.key() : value.category() + "." + value.key();
@@ -30,6 +35,8 @@ public final class ConfigStrings {
     /**
      * Finds a value inside {@code config} by path (see class javadoc).
      *
+     * @param config the config to search
+     * @param path   {@code key} or {@code category.key}, case-insensitive
      * @return the value, or {@code null} when nothing matches
      */
     public static ConfigValue<?> find(MycelConfig config, String path) {
@@ -60,7 +67,12 @@ public final class ConfigStrings {
         return match;
     }
 
-    /** Human-readable current value (lists render comma-separated). */
+    /**
+     * Human-readable current value (lists render comma-separated).
+     *
+     * @param value the config value
+     * @return the current value as text
+     */
     public static String valueToString(ConfigValue<?> value) {
         Objects.requireNonNull(value, "value");
         Object current = value.get();
@@ -74,7 +86,12 @@ public final class ConfigStrings {
         return String.valueOf(current);
     }
 
-    /** Human-readable default value. */
+    /**
+     * Human-readable default value.
+     *
+     * @param value the config value
+     * @return the default as text
+     */
     public static String defaultToString(ConfigValue<?> value) {
         Objects.requireNonNull(value, "value");
         Object def = value.getDefault();
@@ -88,7 +105,12 @@ public final class ConfigStrings {
         return String.valueOf(def);
     }
 
-    /** Short constraint hint: ranges, allowed enum names, max length, ... */
+    /**
+     * Short constraint hint: ranges, allowed enum names, max length, ...
+     *
+     * @param value the config value
+     * @return e.g. {@code "[1..32]"} or {@code "true/false"}
+     */
     public static String constraintHint(ConfigValue<?> value) {
         Objects.requireNonNull(value, "value");
         if (value instanceof ConfigValue.IntegerValue v) {
@@ -121,7 +143,12 @@ public final class ConfigStrings {
         return value.kind().name().toLowerCase(Locale.ROOT);
     }
 
-    /** One-line type summary used by {@code /mycel get <mod>}. */
+    /**
+     * One-line type summary used by {@code /mycel get <mod>}.
+     *
+     * @param value the config value
+     * @return e.g. {@code "integer [1..32]"}
+     */
     public static String describe(ConfigValue<?> value) {
         return value.kind().name().toLowerCase(Locale.ROOT) + " " + constraintHint(value);
     }
@@ -130,6 +157,8 @@ public final class ConfigStrings {
      * Parses {@code text} and applies it to {@code value}, exactly as
      * {@link ConfigValue#set(Object)} would.
      *
+     * @param value the config value
+     * @param text  the new value as typed; lists are comma-separated
      * @throws IllegalArgumentException with a friendly message when invalid
      */
     @SuppressWarnings({"unchecked", "rawtypes"})

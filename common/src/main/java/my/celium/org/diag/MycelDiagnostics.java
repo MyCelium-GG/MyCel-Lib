@@ -24,7 +24,11 @@ public final class MycelDiagnostics {
     private MycelDiagnostics() {
     }
 
-    /** One short line per fact; stable order for tests and admins. */
+    /**
+     * One short line per fact; stable order for tests and admins.
+     *
+     * @return an unmodifiable list of plain lines
+     */
     public static List<String> summaryLines() {
         PlatformService platform = PlatformHolder.get();
         List<String> lines = new ArrayList<>();
@@ -40,7 +44,11 @@ public final class MycelDiagnostics {
         return List.copyOf(lines);
     }
 
-    /** Styled header for {@code /mycel info}: brand + platform + versions. */
+    /**
+     * Styled header for {@code /mycel info}: brand + platform + versions.
+     *
+     * @return the header line
+     */
     public static MutableComponent headerLine() {
         PlatformService platform = PlatformHolder.get();
         return TextUtil.header("Mycel " + Mycel.getVersion(),
@@ -49,7 +57,12 @@ public final class MycelDiagnostics {
                         + " \u00B7 MC " + platform.minecraftVersion());
     }
 
-    /** Styled row for a single registered mod, for use under a header. */
+    /**
+     * Styled row for a single registered mod, for use under a header.
+     *
+     * @param mod the mod
+     * @return the row: name, version, state and any available update
+     */
     public static MutableComponent modLine(ModMetadata mod) {
         MycelConfig config = Mycel.getConfig(mod.id());
         String configState = config == null ? "no config" : config.values().size() + " values";
@@ -67,7 +80,12 @@ public final class MycelDiagnostics {
         return TextUtil.item(row);
     }
 
-    /** Styled row for one config value: path, current, constraint, default when changed. */
+    /**
+     * Styled row for one config value: path, current, constraint, default when changed.
+     *
+     * @param value the config value
+     * @return the row
+     */
     public static MutableComponent configLine(ConfigValue<?> value) {
         String current = ConfigStrings.valueToString(value);
         boolean isDefault = value.isDefault();

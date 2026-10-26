@@ -82,16 +82,29 @@ public final class MycelDump {
     private MycelDump() {
     }
 
-    /** Called by {@code Mycel} from the global config; mods should not call this. */
+    /**
+     * Called by {@code Mycel} from the global config; mods should not call this.
+     *
+     * @param enabled whether {@code /mycel dump} may upload
+     */
     public static void setUploadsEnabled(boolean enabled) {
         uploadsEnabled = enabled;
     }
 
+    /**
+     * Whether uploads are allowed (the {@code dumpUploads} setting in Mycel's config).
+     *
+     * @return {@code true} when allowed
+     */
     public static boolean uploadsEnabled() {
         return uploadsEnabled;
     }
 
-    /** Seconds left before another upload is allowed, {@code 0} when ready. */
+    /**
+     * Seconds left before another upload is allowed, {@code 0} when ready.
+     *
+     * @return the seconds to wait
+     */
     public static long cooldownSeconds() {
         long left = lastUpload.get() + COOLDOWN_MILLIS - System.currentTimeMillis();
         return left <= 0 ? 0 : (left + 999) / 1000;
@@ -99,7 +112,12 @@ public final class MycelDump {
 
     // ------------------------------------------------------------ collect
 
-    /** Builds the report. Call on the server thread: it reads live config values. */
+    /**
+     * Builds the report. Call on the server thread: it reads live config values.
+     *
+     * @param server the running server
+     * @return the report, already redacted
+     */
     public static JsonObject collect(MinecraftServer server) {
         PlatformService platform = PlatformHolder.get();
         JsonObject root = new JsonObject();
@@ -218,7 +236,12 @@ public final class MycelDump {
         }
     }
 
-    /** Removes IP addresses, tokens and the OS home folder (which names the OS user). */
+    /**
+     * Removes IP addresses, tokens and the OS home folder (which names the OS user).
+     *
+     * @param text any text
+     * @return a copy with those parts replaced by placeholders like {@code <ip>}
+     */
     public static String redact(String text) {
         if (text == null || text.isEmpty()) {
             return text;
@@ -237,12 +260,23 @@ public final class MycelDump {
 
     // ------------------------------------------------------------ save + upload
 
-    /** Pretty JSON text of a report. */
+    /**
+     * Pretty JSON text of a report.
+     *
+     * @param dump the report from {@link #collect(MinecraftServer)}
+     * @return the JSON text
+     */
     public static String toJson(JsonObject dump) {
         return GSON.toJson(dump);
     }
 
-    /** Writes the report to {@code <game dir>/mycel-dumps/dump-<time>.json} and returns the path. */
+    /**
+     * Writes the report to {@code <game dir>/mycel-dumps/dump-<time>.json} and returns the path.
+     *
+     * @param json the report, from {@link #toJson(JsonObject)}
+     * @return the file written
+     * @throws IOException when the file cannot be written
+     */
     public static Path save(String json) throws IOException {
         Path dir = PlatformHolder.get().gameDir().resolve("mycel-dumps");
         Files.createDirectories(dir);
@@ -255,6 +289,9 @@ public final class MycelDump {
     /**
      * Uploads to pastes.dev off the game thread. Completes with the paste key,
      * or exceptionally with a short, player-readable message.
+     *
+     * @param json the report, from {@link #toJson(JsonObject)}
+     * @return completes with the paste key; open it with {@link #viewerUrl(String)}
      */
     public static CompletableFuture<String> upload(String json) {
         if (!uploadsEnabled) {
@@ -301,7 +338,12 @@ public final class MycelDump {
         return key != null && key.matches("[A-Za-z0-9]{4,64}") ? key : null;
     }
 
-    /** Viewer link for a paste key. */
+    /**
+     * Viewer link for a paste key.
+     *
+     * @param key the paste key from {@link #upload(String)}
+     * @return the link to share
+     */
     public static String viewerUrl(String key) {
         return VIEWER + key;
     }

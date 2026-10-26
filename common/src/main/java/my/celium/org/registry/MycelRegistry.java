@@ -36,6 +36,8 @@ import net.minecraft.world.level.block.Block;
  * entrypoint execution. Resolving ({@link DeferredEntry#get()}) before the
  * loader creates the object throws - read entries lazily (in handlers, not in
  * static initialisers).
+ *
+ * @param <T> what the registry holds, e.g. {@code Item}
  */
 public final class MycelRegistry<T> {
     private final ModMetadata mod;
@@ -48,14 +50,32 @@ public final class MycelRegistry<T> {
         this.key = key;
     }
 
+    /**
+     * Registers items under the mod's namespace.
+     *
+     * @param mod the mod whose namespace the entries get
+     * @return a registry helper
+     */
     public static MycelRegistry<Item> items(ModMetadata mod) {
         return new MycelRegistry<>(mod, BuiltInRegistries.ITEM, Registries.ITEM);
     }
 
+    /**
+     * Registers blocks under the mod's namespace.
+     *
+     * @param mod the mod whose namespace the entries get
+     * @return a registry helper
+     */
     public static MycelRegistry<Block> blocks(ModMetadata mod) {
         return new MycelRegistry<>(mod, BuiltInRegistries.BLOCK, Registries.BLOCK);
     }
 
+    /**
+     * Registers entity types under the mod's namespace.
+     *
+     * @param mod the mod whose namespace the entries get
+     * @return a registry helper
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static MycelRegistry<EntityType<?>> entityTypes(ModMetadata mod) {
         return new MycelRegistry(mod, BuiltInRegistries.ENTITY_TYPE, Registries.ENTITY_TYPE);
@@ -64,6 +84,10 @@ public final class MycelRegistry<T> {
     /**
      * Registers {@code factory} under {@code modid:name}. The factory runs at
      * the loader's registration time, never earlier.
+     *
+     * @param name    the path, lowercase {@code [a-z0-9_/.-]}
+     * @param factory creates the object
+     * @return a lazy handle to the registered object
      */
     public DeferredEntry<T> register(String name, Supplier<T> factory) {
         checkName(name);
@@ -76,6 +100,10 @@ public final class MycelRegistry<T> {
     /**
      * Like {@link #register}, but hands the factory the entry's own key, which
      * {@code Item.Properties.setId} and {@code BlockBehaviour.Properties.setId} need.
+     *
+     * @param name    the path, lowercase {@code [a-z0-9_/.-]}
+     * @param factory creates the object from its key
+     * @return a lazy handle to the registered object
      */
     public DeferredEntry<T> registerWithKey(String name, Function<ResourceKey<T>, T> factory) {
         if (factory == null) {
@@ -85,7 +113,12 @@ public final class MycelRegistry<T> {
         return register(name, () -> factory.apply(entryKey));
     }
 
-    /** The key {@code modid:name} in this registry. */
+    /**
+     * The key {@code modid:name} in this registry.
+     *
+     * @param name the path, lowercase {@code [a-z0-9_/.-]}
+     * @return the key
+     */
     public ResourceKey<T> key(String name) {
         checkName(name);
         return ResourceKey.create(key, Identifier.fromNamespaceAndPath(mod.id(), name));
@@ -101,6 +134,7 @@ public final class MycelRegistry<T> {
      * Hooks deferred registration into the loader. Called once by each loader
      * entrypoint with its mod event bus (ignored on Fabric).
      *
+     * @param modEventBus the loader's mod event bus, or {@code null} on Fabric
      * @hidden
      */
     public static void initBridges(Object modEventBus) {

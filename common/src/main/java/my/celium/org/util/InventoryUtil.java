@@ -16,6 +16,13 @@ public final class InventoryUtil {
     private InventoryUtil() {
     }
 
+    /**
+     * Counts the items in {@code container} matching {@code filter}.
+     *
+     * @param container the inventory
+     * @param filter    which stacks count
+     * @return the total item count, summed over stacks
+     */
     public static int count(Container container, Predicate<ItemStack> filter) {
         int total = 0;
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
@@ -27,14 +34,36 @@ public final class InventoryUtil {
         return total;
     }
 
+    /**
+     * Counts the items in {@code player}'s inventory matching {@code filter}.
+     *
+     * @param player the player
+     * @param filter which stacks count
+     * @return the total item count, summed over stacks
+     */
     public static int count(Player player, Predicate<ItemStack> filter) {
         return count(player.getInventory(), filter);
     }
 
+    /**
+     * Counts the items of one kind in {@code container}.
+     *
+     * @param container the inventory
+     * @param item      the item
+     * @return the total item count
+     */
     public static int countItem(Container container, Item item) {
         return count(container, stack -> stack.is(item));
     }
 
+    /**
+     * Whether {@code container} holds at least {@code amount} of {@code item}.
+     *
+     * @param container the inventory
+     * @param item      the item
+     * @param amount    how many are needed
+     * @return {@code true} when there are enough
+     */
     public static boolean contains(Container container, Item item, int amount) {
         return countItem(container, item) >= amount;
     }
@@ -42,6 +71,11 @@ public final class InventoryUtil {
     /**
      * Removes up to {@code amount} matching items. Returns how many were
      * actually removed.
+     *
+     * @param container the inventory
+     * @param filter    which stacks to take from
+     * @param amount    the most to remove
+     * @return how many were removed
      */
     public static int remove(Container container, Predicate<ItemStack> filter, int amount) {
         int remaining = amount;
@@ -63,6 +97,14 @@ public final class InventoryUtil {
         return amount - remaining;
     }
 
+    /**
+     * Removes up to {@code amount} of {@code item}.
+     *
+     * @param container the inventory
+     * @param item      the item
+     * @param amount    the most to remove
+     * @return how many were removed
+     */
     public static int removeItem(Container container, Item item, int amount) {
         return remove(container, stack -> stack.is(item), amount);
     }
@@ -70,6 +112,10 @@ public final class InventoryUtil {
     /**
      * Inserts {@code stack}, merging with existing stacks first. Returns the
      * leftover (possibly empty). The passed stack is consumed.
+     *
+     * @param container the inventory
+     * @param stack     what to insert; shrunk by what fits
+     * @return what did not fit
      */
     public static ItemStack insert(Container container, ItemStack stack) {
         if (stack.isEmpty()) {
@@ -102,7 +148,13 @@ public final class InventoryUtil {
         return stack;
     }
 
-    /** First slot matching the filter, or {@code -1}. */
+    /**
+     * First slot matching the filter, or {@code -1}.
+     *
+     * @param container the inventory
+     * @param filter    which stacks match
+     * @return the slot index, or {@code -1}
+     */
     public static int findSlot(Container container, Predicate<ItemStack> filter) {
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
             ItemStack stack = container.getItem(slot);
@@ -116,6 +168,9 @@ public final class InventoryUtil {
     /**
      * Whether the player's inventory holds an item matching {@code filter}.
      *
+     * @param player the player
+     * @param filter which stacks match
+     * @return {@code true} when a match exists
      * @deprecated despite its name this never moved anything into the hand;
      *     it only reports whether a match exists. Use {@link #findSlot} instead.
      *     Removed in Mycel 2.0.

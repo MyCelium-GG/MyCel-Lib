@@ -33,6 +33,14 @@ public abstract class ConfigValue<T> {
     private volatile T current;
     private final List<Consumer<T>> listeners = new CopyOnWriteArrayList<>();
 
+    /**
+     * Creates a value; subclasses validate their own constraints.
+     *
+     * @param category     the category, or {@code null}/{@code ""} for the root level
+     * @param key          the key, not blank
+     * @param defaultValue the default, not {@code null}
+     * @param description  shown in the config screen, or {@code null}
+     */
     protected ConfigValue(String category, String key, T defaultValue, String description) {
         this.category = category == null ? "" : category;
         this.key = Objects.requireNonNull(key, "key");
@@ -44,30 +52,63 @@ public abstract class ConfigValue<T> {
         this.description = description == null ? "" : description;
     }
 
-    /** Category, or {@code ""} for the root level. */
+    /**
+     * Category, or {@code ""} for the root level.
+     *
+     * @return the category
+     */
     public String category() {
         return category;
     }
 
+    /**
+     * The key within its category, as written in the file.
+     *
+     * @return the key
+     */
     public String key() {
         return key;
     }
 
-    /** Human readable explanation shown in the config screen. */
+    /**
+     * Human readable explanation shown in the config screen.
+     *
+     * @return the description, {@code ""} when none was given
+     */
     public String description() {
         return description;
     }
 
+    /**
+     * What kind of value this is, so screens and commands can pick an editor.
+     *
+     * @return the kind
+     */
     public abstract ValueKind kind();
 
+    /**
+     * The current value. Cheap and thread-safe; read it every time rather than caching it.
+     *
+     * @return the current value
+     */
     public T get() {
         return current;
     }
 
+    /**
+     * The value it had before anyone changed it.
+     *
+     * @return the default
+     */
     public T getDefault() {
         return defaultValue;
     }
 
+    /**
+     * Whether the current value equals the default.
+     *
+     * @return {@code true} when unchanged
+     */
     public boolean isDefault() {
         return Objects.equals(current, defaultValue);
     }
@@ -76,6 +117,7 @@ public abstract class ConfigValue<T> {
      * Sets a new value after validation. Persists and notifies listeners
      * when the value actually changed.
      *
+     * @param value the new value, not {@code null}
      * @throws IllegalArgumentException when the value is invalid
      */
     public void set(T value) {
@@ -93,7 +135,11 @@ public abstract class ConfigValue<T> {
         set(defaultValue);
     }
 
-    /** Registers a change listener; fired on the thread that performed the change. */
+    /**
+     * Registers a change listener; fired on the thread that performed the change.
+     *
+     * @param listener receives the new value; an exception it throws is logged and ignored
+     */
     public void onChange(Consumer<T> listener) {
         listeners.add(Objects.requireNonNull(listener, "listener"));
     }
@@ -115,21 +161,42 @@ public abstract class ConfigValue<T> {
         return serialize(current);
     }
 
-    /** Validates (and possibly normalises) a value; throws when unacceptable for code-driven sets. */
+    /**
+     * Validates (and possibly normalises) a value; throws when unacceptable for code-driven sets.
+     *
+     * @param value the candidate
+     * @return the value to store
+     * @throws IllegalArgumentException when it is not acceptable
+     */
     protected abstract T check(T value);
 
     /**
      * Validates a candidate exactly as {@link #set(Object)} would, without
      * changing anything. Used by the config screen's live validation.
      *
+     * @param value the candidate
+     * @return the value {@code set} would store
      * @throws IllegalArgumentException when the value is invalid
      */
     public T validate(T value) {
         return check(Objects.requireNonNull(value, "value"));
     }
 
+    /**
+     * Turns a value into its JSON form for the config file.
+     *
+     * @param value the value
+     * @return its JSON form
+     */
     protected abstract JsonElement serialize(T value);
 
+    /**
+     * Reads a value from its JSON form in the config file.
+     *
+     * @param element the JSON from the file
+     * @return the value
+     * @throws RuntimeException when the JSON does not hold a valid value
+     */
     protected abstract T deserialize(JsonElement element);
 
     private void onChanged(T oldValue, T newValue) {
@@ -166,6 +233,14 @@ public abstract class ConfigValue<T> {
 
     /** Boolean value. */
     public static final class BooleanValue extends ConfigValue<Boolean> {
+        /**
+         * Creates a boolean value. Prefer the matching {@link ConfigBuilder} method, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param defaultValue the default
+         * @param description  shown in the config screen
+         */
         public BooleanValue(String category, String key, boolean defaultValue, String description) {
             super(category, key, defaultValue, description);
         }
@@ -207,6 +282,17 @@ public abstract class ConfigValue<T> {
         private final int min;
         private final int max;
 
+        /**
+         * Creates an integer value. Prefer the matching {@link ConfigBuilder} method, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param defaultValue the default
+         * @param min          lowest allowed (inclusive)
+         * @param max          highest allowed (inclusive)
+         * @param description  shown in the config screen
+         * @throws IllegalArgumentException when {@code min > max} or the default is out of range
+         */
         public IntegerValue(String category, String key, int defaultValue, int min, int max, String description) {
             super(category, key, defaultValue, description);
             if (min > max) {
@@ -219,10 +305,20 @@ public abstract class ConfigValue<T> {
             this.max = max;
         }
 
+        /**
+         * The lowest allowed value.
+         *
+         * @return the minimum (inclusive)
+         */
         public int min() {
             return min;
         }
 
+        /**
+         * The highest allowed value.
+         *
+         * @return the maximum (inclusive)
+         */
         public int max() {
             return max;
         }
@@ -276,6 +372,17 @@ public abstract class ConfigValue<T> {
         private final long min;
         private final long max;
 
+        /**
+         * Creates a long value. Prefer the matching {@link ConfigBuilder} method, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param defaultValue the default
+         * @param min          lowest allowed (inclusive)
+         * @param max          highest allowed (inclusive)
+         * @param description  shown in the config screen
+         * @throws IllegalArgumentException when {@code min > max} or the default is out of range
+         */
         public LongValue(String category, String key, long defaultValue, long min, long max, String description) {
             super(category, key, defaultValue, description);
             if (min > max) {
@@ -288,10 +395,20 @@ public abstract class ConfigValue<T> {
             this.max = max;
         }
 
+        /**
+         * The lowest allowed value.
+         *
+         * @return the minimum (inclusive)
+         */
         public long min() {
             return min;
         }
 
+        /**
+         * The highest allowed value.
+         *
+         * @return the maximum (inclusive)
+         */
         public long max() {
             return max;
         }
@@ -344,6 +461,17 @@ public abstract class ConfigValue<T> {
         private final double min;
         private final double max;
 
+        /**
+         * Creates a double value. Prefer the matching {@link ConfigBuilder} method, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param defaultValue the default
+         * @param min          lowest allowed (inclusive)
+         * @param max          highest allowed (inclusive)
+         * @param description  shown in the config screen
+         * @throws IllegalArgumentException when {@code min > max} or the default is out of range
+         */
         public DoubleValue(String category, String key, double defaultValue, double min, double max,
                 String description) {
             super(category, key, defaultValue, description);
@@ -357,10 +485,20 @@ public abstract class ConfigValue<T> {
             this.max = max;
         }
 
+        /**
+         * The lowest allowed value.
+         *
+         * @return the minimum (inclusive)
+         */
         public double min() {
             return min;
         }
 
+        /**
+         * The highest allowed value.
+         *
+         * @return the maximum (inclusive)
+         */
         public double max() {
             return max;
         }
@@ -416,6 +554,16 @@ public abstract class ConfigValue<T> {
     public static final class StringValue extends ConfigValue<String> {
         private final int maxLength;
 
+        /**
+         * Creates a string value. Prefer the matching {@link ConfigBuilder} method, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param defaultValue the default
+         * @param maxLength    the longest allowed text
+         * @param description  shown in the config screen
+         * @throws IllegalArgumentException when the default is longer than {@code maxLength}
+         */
         public StringValue(String category, String key, String defaultValue, int maxLength, String description) {
             super(category, key, defaultValue, description);
             if (maxLength < 0) {
@@ -427,6 +575,11 @@ public abstract class ConfigValue<T> {
             this.maxLength = maxLength;
         }
 
+        /**
+         * The longest allowed text.
+         *
+         * @return the maximum length in characters
+         */
         public int maxLength() {
             return maxLength;
         }
@@ -466,20 +619,42 @@ public abstract class ConfigValue<T> {
         }
     }
 
-    /** Enum value; unknown names on disk fall back to the default. */
+    /**
+     * Enum value; unknown names on disk fall back to the default.
+     *
+     * @param <E> the enum type
+     */
     public static final class EnumValue<E extends Enum<E>> extends ConfigValue<E> {
         private final Class<E> type;
 
+        /**
+         * Creates an enum value. Prefer {@link ConfigBuilder#enumValue}, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param type         the enum class
+         * @param defaultValue the default
+         * @param description  shown in the config screen
+         */
         public EnumValue(String category, String key, Class<E> type, E defaultValue, String description) {
             super(category, key, defaultValue, description);
             this.type = Objects.requireNonNull(type, "type");
         }
 
+        /**
+         * The enum class.
+         *
+         * @return the enum class
+         */
         public Class<E> type() {
             return type;
         }
 
-        /** All allowed constants, in declaration order. */
+        /**
+         * All allowed constants, in declaration order.
+         *
+         * @return an unmodifiable list
+         */
         public List<E> constants() {
             List<E> list = new ArrayList<>();
             Collections.addAll(list, type.getEnumConstants());
@@ -515,6 +690,14 @@ public abstract class ConfigValue<T> {
 
     /** List-of-strings value (defensive copies in and out). */
     public static final class StringListValue extends ConfigValue<List<String>> {
+        /**
+         * Creates a string list value. Prefer the matching {@link ConfigBuilder} method, which also registers the value.
+         *
+         * @param category     the category, {@code ""} for the root level
+         * @param key          the key
+         * @param defaultValue the default
+         * @param description  shown in the config screen
+         */
         public StringListValue(String category, String key, List<String> defaultValue, String description) {
             super(category, key, List.copyOf(defaultValue), description);
         }

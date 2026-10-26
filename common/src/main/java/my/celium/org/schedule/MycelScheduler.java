@@ -17,6 +17,17 @@ import net.minecraft.server.MinecraftServer;
  *       HTTP. It must <b>never</b> touch game state; hop back with
  *       {@link #runOnServer} when done.</li>
  * </ul>
+ *
+ * <pre>{@code
+ * // Once a second (20 ticks), on the server thread:
+ * ScheduledTask scan = MycelScheduler.runEvery(20, PetTracker::scan);
+ *
+ * // Slow IO off the game thread, then back to it with the result:
+ * MycelScheduler.runAsync(() -> {
+ *     Root data = FILE.read(Root.class, Root::new);
+ *     MycelScheduler.runOnServer(() -> apply(data));
+ * });
+ * }</pre>
  */
 public final class MycelScheduler {
     private MycelScheduler() {
@@ -25,6 +36,9 @@ public final class MycelScheduler {
     /**
      * Runs {@code task} on the server thread after {@code delayTicks} server ticks.
      * When no server is running yet, the task waits for the next server tick.
+     *
+     * @param delayTicks how many ticks to wait (20 ticks = 1 second)
+     * @param task       what to run
      */
     public static void runLater(long delayTicks, Runnable task) {
         TickScheduler.runLater(delayTicks, Objects.requireNonNull(task, "task"));
@@ -33,12 +47,20 @@ public final class MycelScheduler {
     /**
      * Runs {@code task} on the server thread every {@code intervalTicks} ticks.
      * The returned handle cancels future runs (also cancelled automatically on server stop).
+     *
+     * @param intervalTicks ticks between runs (20 ticks = 1 second)
+     * @param task          what to run
+     * @return a handle to cancel it
      */
     public static ScheduledTask runEvery(long intervalTicks, Runnable task) {
         return TickScheduler.runEvery(intervalTicks, Objects.requireNonNull(task, "task"));
     }
 
-    /** Runs {@code task} on Mycel's shared background pool. Never touch game state here. */
+    /**
+     * Runs {@code task} on Mycel's shared background pool. Never touch game state here.
+     *
+     * @param task what to run
+     */
     public static void runAsync(Runnable task) {
         MycelExecutors.async().execute(Objects.requireNonNull(task, "task"));
     }
@@ -46,6 +68,8 @@ public final class MycelScheduler {
     /**
      * Queues {@code task} onto the server thread. Safe to call from background
      * threads; if no server is running the task is dropped with a warning.
+     *
+     * @param task what to run
      */
     public static void runOnServer(Runnable task) {
         Objects.requireNonNull(task, "task");
@@ -57,7 +81,11 @@ public final class MycelScheduler {
         server.execute(task);
     }
 
-    /** Is the current thread the server thread? Useful for assertions in mod code. */
+    /**
+     * Is the current thread the server thread? Useful for assertions in mod code.
+     *
+     * @return {@code true} on the server thread of a running server
+     */
     public static boolean isServerThread() {
         MinecraftServer server = ServerHolder.get();
         return server != null && Thread.currentThread() == server.getRunningThread();

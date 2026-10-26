@@ -62,19 +62,40 @@ public final class MycelTheme {
     /** Missing, too expensive, errors. */
     public static final int BAD = ACCENT;
 
-    /** A wiki card: hard offset shadow, 2px border, flat body. */
+    /**
+     * A wiki card: hard offset shadow, 2px border, flat body.
+     *
+     * @param gfx the graphics to draw with
+     * @param x0  left edge
+     * @param y0  top edge
+     * @param x1  right edge (exclusive; the shadow extends past it)
+     * @param y1  bottom edge (exclusive; the shadow extends past it)
+     */
     public static void panel(GuiGraphicsExtractor gfx, int x0, int y0, int x1, int y1) {
         gfx.fill(x0 + 3, y0 + 3, x1 + 3, y1 + 3, SHADOW);
         gfx.fill(x0, y0, x1, y1, BORDER);
         gfx.fill(x0 + 2, y0 + 2, x1 - 2, y1 - 2, BG);
     }
 
-    /** Text in an ARGB theme color (alpha is ignored). */
+    /**
+     * Text in an ARGB theme color (alpha is ignored).
+     *
+     * @param text the text
+     * @param argb one of this class's colors
+     * @return a new colored literal
+     */
     public static MutableComponent colored(String text, int argb) {
         return TextUtil.hex(text, argb & 0xFFFFFF);
     }
 
-    /** {@code text}, cut with an ellipsis so it fits {@code maxWidth} pixels. */
+    /**
+     * {@code text}, cut with an ellipsis so it fits {@code maxWidth} pixels.
+     *
+     * @param font     the font it is drawn with
+     * @param text     the text
+     * @param maxWidth the room in pixels
+     * @return {@code text} itself when it fits, else a shortened copy ending in {@code …}
+     */
     public static String fit(Font font, String text, int maxWidth) {
         if (font.width(text) <= maxWidth) {
             return text;

@@ -31,6 +31,7 @@ public final class EntityReplacer {
     /**
      * Discards {@code oldEntity} and spawns {@code fresh} in its place.
      *
+     * @param <T> the replacement's type
      * @param level the server level both entities belong to
      * @param oldEntity the entity to remove (must be alive and in {@code level})
      * @param fresh the replacement (must not be added to any level yet)

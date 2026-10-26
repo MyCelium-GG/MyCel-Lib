@@ -17,7 +17,13 @@ public final class ClientHooks {
     private ClientHooks() {
     }
 
-    /** Creates the config screen for a live config handle. Client only. */
+    /**
+     * Creates the config screen for a live config handle. Client only.
+     *
+     * @param parent the screen to return to when it closes (may be {@code null})
+     * @param config the config to edit
+     * @return the config screen, or {@code parent} when {@code config} is {@code null}
+     */
     public static Screen createConfigScreen(Screen parent, MycelConfig config) {
         if (config == null) {
             return parent;
@@ -28,6 +34,10 @@ public final class ClientHooks {
     /**
      * Creates the config screen for {@code modId}, or {@code parent} when the
      * mod has no Mycel config. Client only.
+     *
+     * @param parent the screen to return to; anything that is not a {@link Screen} counts as none
+     * @param modId  the mod whose config to edit
+     * @return the config screen, or {@code parent} when the mod has no config
      */
     public static Screen createConfigScreen(Object parent, String modId) {
         Screen parentScreen = parent instanceof Screen screen ? screen : null;

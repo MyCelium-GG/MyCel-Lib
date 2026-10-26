@@ -16,6 +16,16 @@ import my.celium.org.logging.MycelLog;
  *
  * <p>All events fire on the server thread. A throwing listener is logged and
  * skipped so one bad handler cannot break the others.
+ *
+ * <p>Subscribe once, from mod init:
+ * <pre>{@code
+ * MycelEvents.onPlayerJoin(event -> PlayerUtil.sendMessage(event.player(), CHAT.note("Welcome back!")));
+ * MycelEvents.onServerLifecycle(event -> {
+ *     if (event.phase() == ServerLifecycleEvent.Phase.STOPPED) {
+ *         CACHE.clear();
+ *     }
+ * });
+ * }</pre>
  */
 public final class MycelEvents {
     private static final List<Consumer<PlayerJoinEvent>> JOIN = new CopyOnWriteArrayList<>();
@@ -26,40 +36,80 @@ public final class MycelEvents {
     private MycelEvents() {
     }
 
+    /**
+     * Listens for players joining the server.
+     *
+     * @param listener called with the event on the server thread
+     */
     public static void onPlayerJoin(Consumer<PlayerJoinEvent> listener) {
         JOIN.add(listener);
     }
 
+    /**
+     * Listens for players leaving the server.
+     *
+     * @param listener called with the event on the server thread
+     */
     public static void onPlayerLeave(Consumer<PlayerLeaveEvent> listener) {
         LEAVE.add(listener);
     }
 
+    /**
+     * Listens for the server starting and stopping.
+     *
+     * @param listener called with the event on the server thread
+     */
     public static void onServerLifecycle(Consumer<ServerLifecycleEvent> listener) {
         LIFECYCLE.add(listener);
     }
 
+    /**
+     * Listens for {@code EntityReplacer} swapping one entity for another.
+     *
+     * @param listener called with the event on the server thread
+     */
     public static void onEntityReplaced(Consumer<EntityReplacedEvent> listener) {
         REPLACED.add(listener);
     }
 
     // Called by the loader modules. Not public API (but must be visible across modules).
 
-    /** @hidden */
+    /**
+     * Fires the event; called by the loader modules, not by mods.
+     *
+     * @param event the event
+     * @hidden
+     */
     public static void firePlayerJoin(PlayerJoinEvent event) {
         fire(JOIN, event, "PlayerJoin");
     }
 
-    /** @hidden */
+    /**
+     * Fires the event; called by the loader modules, not by mods.
+     *
+     * @param event the event
+     * @hidden
+     */
     public static void firePlayerLeave(PlayerLeaveEvent event) {
         fire(LEAVE, event, "PlayerLeave");
     }
 
-    /** @hidden */
+    /**
+     * Fires the event; called by the loader modules, not by mods.
+     *
+     * @param event the event
+     * @hidden
+     */
     public static void fireServerLifecycle(ServerLifecycleEvent event) {
         fire(LIFECYCLE, event, "ServerLifecycle");
     }
 
-    /** @hidden */
+    /**
+     * Fires the event; called by the loader modules, not by mods.
+     *
+     * @param event the event
+     * @hidden
+     */
     public static void fireEntityReplaced(EntityReplacedEvent event) {
         fire(REPLACED, event, "EntityReplaced");
     }

@@ -41,35 +41,75 @@ public final class PacketDefinition<T extends CustomPacketPayload> {
         this.handler = Objects.requireNonNull(handler, "handler");
     }
 
-    /** Server {@code ->} client packet. */
+    /**
+     * Server {@code ->} client packet.
+     *
+     * @param <T>     the payload type
+     * @param type    the payload's {@code TYPE} (its channel id)
+     * @param codec   reads and writes the payload
+     * @param handler runs on the client game thread when the packet arrives
+     * @return the definition; pass it to {@link MycelNetwork#register}
+     */
     public static <T extends CustomPacketPayload> PacketDefinition<T> toClient(
             CustomPacketPayload.Type<T> type, StreamCodec<FriendlyByteBuf, T> codec, PacketHandler<T> handler) {
         return new PacketDefinition<>(type, codec, PacketDirection.TO_CLIENT, handler);
     }
 
-    /** Client {@code ->} server packet. */
+    /**
+     * Client {@code ->} server packet.
+     *
+     * @param <T>     the payload type
+     * @param type    the payload's {@code TYPE} (its channel id)
+     * @param codec   reads and writes the payload
+     * @param handler runs on the server game thread when the packet arrives
+     * @return the definition; pass it to {@link MycelNetwork#register}
+     */
     public static <T extends CustomPacketPayload> PacketDefinition<T> toServer(
             CustomPacketPayload.Type<T> type, StreamCodec<FriendlyByteBuf, T> codec, PacketHandler<T> handler) {
         return new PacketDefinition<>(type, codec, PacketDirection.TO_SERVER, handler);
     }
 
+    /**
+     * The payload type this packet carries.
+     *
+     * @return the type
+     */
     public CustomPacketPayload.Type<T> type() {
         return type;
     }
 
-    /** Channel id, e.g. {@code mymod:greet}. */
+    /**
+     * Channel id, e.g. {@code mymod:greet}.
+     *
+     * @return the id
+     */
     public Identifier id() {
         return type.id();
     }
 
+    /**
+     * The codec that reads and writes the payload.
+     *
+     * @return the codec
+     */
     public StreamCodec<FriendlyByteBuf, T> codec() {
         return codec;
     }
 
+    /**
+     * Which way the packet travels.
+     *
+     * @return the direction
+     */
     public PacketDirection direction() {
         return direction;
     }
 
+    /**
+     * What runs when the packet arrives.
+     *
+     * @return the handler
+     */
     public PacketHandler<T> handler() {
         return handler;
     }

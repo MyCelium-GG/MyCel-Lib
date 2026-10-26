@@ -36,6 +36,12 @@ public final class MycelConfigScreen extends Screen {
     private Button doneButton;
     private StringWidget scrollHint;
 
+    /**
+     * Creates the screen; {@code ClientHooks.createConfigScreen} is the usual way in.
+     *
+     * @param parent the screen to return to when it closes, or {@code null}
+     * @param config the config to edit
+     */
     public MycelConfigScreen(Screen parent, MycelConfig config) {
         super(Component.literal(config.metadata().name() + " configuration"));
         this.parent = parent;

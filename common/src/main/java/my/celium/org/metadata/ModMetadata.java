@@ -34,27 +34,47 @@ public final class ModMetadata {
         this.updateUrl = builder.updateUrl;
     }
 
-    /** Lowercase namespaced id, e.g. {@code "doubledoors"}. */
+    /**
+     * Lowercase namespaced id, e.g. {@code "doubledoors"}.
+     *
+     * @return the id
+     */
     public String id() {
         return id;
     }
 
-    /** Human readable name, e.g. {@code "Double Doors"}. */
+    /**
+     * Human readable name, e.g. {@code "Double Doors"}.
+     *
+     * @return the name
+     */
     public String name() {
         return name;
     }
 
-    /** Mod version string, e.g. {@code "1.4.0"}. */
+    /**
+     * Mod version string, e.g. {@code "1.4.0"}.
+     *
+     * @return the version
+     */
     public String version() {
         return version;
     }
 
-    /** Project website, may be {@code null}. */
+    /**
+     * Project website, may be {@code null}.
+     *
+     * @return the website, or {@code null}
+     */
     public String website() {
         return website;
     }
 
-    /** Authors, never {@code null} (possibly empty). */
+    /**
+     * Authors, never {@code null} (possibly empty).
+     *
+     * @return an unmodifiable list
+     */
     public List<String> authors() {
         return authors;
     }
@@ -63,6 +83,8 @@ public final class ModMetadata {
      * Optional URL returning update metadata JSON for this mod.
      * Update checking is asynchronous, cached and failure-tolerant.
      * {@code null} disables update checking for this mod.
+     *
+     * @return the URL, or {@code null}
      */
     public String updateUrl() {
         return updateUrl;
@@ -89,6 +111,15 @@ public final class ModMetadata {
         return name + " (" + id + " " + version + ")";
     }
 
+    /**
+     * Starts the metadata for a mod.
+     *
+     * @param id      lowercase {@code [a-z0-9_-]+}; also the config file name and translation namespace
+     * @param name    the display name
+     * @param version the mod's version
+     * @return a new builder
+     * @throws IllegalArgumentException when {@code id} has other characters
+     */
     public static Builder builder(String id, String name, String version) {
         return new Builder(id, name, version);
     }
@@ -112,16 +143,34 @@ public final class ModMetadata {
             this.version = Objects.requireNonNull(version, "version");
         }
 
+        /**
+         * Sets the project website.
+         *
+         * @param website the URL, or {@code null}
+         * @return this builder
+         */
         public Builder website(String website) {
             this.website = website;
             return this;
         }
 
+        /**
+         * Adds one author.
+         *
+         * @param author the name
+         * @return this builder
+         */
         public Builder author(String author) {
             this.authors.add(Objects.requireNonNull(author, "author"));
             return this;
         }
 
+        /**
+         * Adds several authors.
+         *
+         * @param authors the names
+         * @return this builder
+         */
         public Builder authors(List<String> authors) {
             this.authors.addAll(Objects.requireNonNull(authors, "authors"));
             return this;
@@ -131,6 +180,10 @@ public final class ModMetadata {
          * Opt in to update checking. Must be an {@code https://} URL that
          * serves a small JSON document. See {@code UpdateChecker} for the
          * expected shape and the safety rules (timeouts, size limits).
+         *
+         * @param updateUrl the URL, or {@code null} for no checks
+         * @return this builder
+         * @throws IllegalArgumentException when the URL is not {@code https://}
          */
         public Builder updateUrl(String updateUrl) {
             if (updateUrl != null && !updateUrl.startsWith("https://")) {
@@ -140,6 +193,11 @@ public final class ModMetadata {
             return this;
         }
 
+        /**
+         * Finishes the metadata; pass it to {@code Mycel.registerMod}.
+         *
+         * @return the metadata
+         */
         public ModMetadata build() {
             return new ModMetadata(this);
         }

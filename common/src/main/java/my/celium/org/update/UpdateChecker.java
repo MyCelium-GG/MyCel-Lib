@@ -61,6 +61,7 @@ public final class UpdateChecker {
     /**
      * Called by {@code Mycel} from the global config; mods should not call this.
      *
+     * @param enabled whether any checks may run
      * @hidden
      */
     public static void setGloballyEnabled(boolean enabled) {
@@ -70,6 +71,8 @@ public final class UpdateChecker {
     /**
      * Queues an update check for {@code mod}. No-op when globally disabled,
      * when the mod has no {@code updateUrl}, or when a fresh cached result exists.
+     *
+     * @param mod the mod to check
      */
     public static void check(ModMetadata mod) {
         Objects.requireNonNull(mod, "mod");
@@ -92,7 +95,12 @@ public final class UpdateChecker {
         });
     }
 
-    /** Last result for a mod, or {@code null} when never checked. */
+    /**
+     * Last result for a mod, or {@code null} when never checked.
+     *
+     * @param modId the mod id
+     * @return the result, or {@code null}
+     */
     public static UpdateResult lastResult(String modId) {
         return CACHE.get(modId);
     }

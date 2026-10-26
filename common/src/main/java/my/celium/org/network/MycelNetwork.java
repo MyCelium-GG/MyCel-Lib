@@ -22,14 +22,24 @@ import net.minecraft.world.level.ChunkPos;
  * Loader-independent networking.
  *
  * <p>Mods define {@link CustomPacketPayload} records, describe them with
- * {@link PacketDefinition}, and register them here:
+ * {@link PacketDefinition}, and register them here. A packet each way, as in
+ * the example mod:
  * <pre>{@code
- * MycelNetwork.register(META, PacketDefinition.toClient(GreetPacket.TYPE, GreetPacket.CODEC, (packet, ctx) -> {
- *     // runs on the client game thread
- * }));
+ * // Common init, on both sides:
+ * GREET = PacketDefinition.toClient(GreetPacket.TYPE, GreetPacket.CODEC,
+ *         (packet, context) -> ClientGreeting.show(packet.message()));   // client game thread
+ * MycelNetwork.register(META, GREET);
+ * SEEN = PacketDefinition.toServer(SeenPacket.TYPE, SeenPacket.CODEC,
+ *         (packet, context) -> MycelLog.infoMod("mymod", "{} saw it", context.sender().getName().getString()));
+ * MycelNetwork.register(META, SEEN);
  *
- * MycelNetwork.sendToPlayer(player, GREET, new GreetPacket("hi"));
+ * // Server side, e.g. when a player joins:
+ * MycelNetwork.sendToPlayer(player, GREET, new GreetPacket("Welcome back!"));
+ *
+ * // Client side, in ClientGreeting (never loaded on a dedicated server):
+ * MycelNetwork.sendToServer(SEEN, new SeenPacket());
  * }</pre>
+ * See {@link PacketDefinition} for the payload records themselves.
  *
  * <p>Sending uses plain vanilla packets on Fabric and NeoForge and Forge's
  * channel on Forge (which refuses unwrapped payloads); callers never notice.
@@ -60,6 +70,10 @@ public final class MycelNetwork {
     /**
      * Registers a packet channel. Duplicate registrations are ignored with a warning.
      * Safe to call during mod init on any loader.
+     *
+     * @param <T>        the payload type
+     * @param mod        the owning mod
+     * @param definition the packet: id, codec, direction and handler
      */
     public static synchronized <T extends CustomPacketPayload> void register(ModMetadata mod,
             PacketDefinition<T> definition) {
@@ -81,6 +95,7 @@ public final class MycelNetwork {
     /**
      * All registered definitions, in registration order. Used by the loader wiring.
      *
+     * @return an unmodifiable snapshot
      * @hidden
      */
     public static synchronized List<PacketDefinition<?>> definitions() {
@@ -90,6 +105,10 @@ public final class MycelNetwork {
     /**
      * Whether {@code player}'s client can receive {@code definition}'s channel,
      * i.e. has the mod installed. Call on the server thread.
+     *
+     * @param player     the receiving player
+     * @param definition the packet
+     * @return {@code true} when it would arrive
      */
     public static boolean canSend(ServerPlayer player, PacketDefinition<?> definition) {
         Objects.requireNonNull(player, "player");
@@ -100,6 +119,11 @@ public final class MycelNetwork {
     /**
      * Sends a clientbound packet to one player. Call on the server thread.
      * Does nothing when the player's client lacks the channel (see {@link #canSend}).
+     *
+     * @param <T>        the payload type
+     * @param player     the receiving player
+     * @param definition the packet, from {@link PacketDefinition#toClient}
+     * @param payload    the packet to send
      */
     public static <T extends CustomPacketPayload> void sendToPlayer(ServerPlayer player,
             PacketDefinition<T> definition, T payload) {
@@ -110,7 +134,14 @@ public final class MycelNetwork {
         }
     }
 
-    /** Sends a clientbound packet to every connected player that can receive it. Call on the server thread. */
+    /**
+     * Sends a clientbound packet to every connected player that can receive it. Call on the server thread.
+     *
+     * @param <T>        the payload type
+     * @param server     the running server
+     * @param definition the packet, from {@link PacketDefinition#toClient}
+     * @param payload    the packet to send
+     */
     public static <T extends CustomPacketPayload> void sendToAll(MinecraftServer server,
             PacketDefinition<T> definition, T payload) {
         Objects.requireNonNull(server, "server");
@@ -125,6 +156,12 @@ public final class MycelNetwork {
     /**
      * Sends a clientbound packet to players near a chunk (same dimension, within
      * roughly view distance). Call on the server thread.
+     *
+     * @param <T>        the payload type
+     * @param level      the dimension
+     * @param pos        the chunk
+     * @param definition the packet, from {@link PacketDefinition#toClient}
+     * @param payload    the packet to send
      */
     public static <T extends CustomPacketPayload> void sendToTracking(ServerLevel level, ChunkPos pos,
             PacketDefinition<T> definition, T payload) {
@@ -150,6 +187,9 @@ public final class MycelNetwork {
     /**
      * Whether the server this client is connected to has {@code definition}'s
      * channel, i.e. runs the mod. {@code false} when not connected. Client only.
+     *
+     * @param definition the packet
+     * @return {@code true} when it would arrive
      */
     public static boolean canSendToServer(PacketDefinition<?> definition) {
         Objects.requireNonNull(definition, "definition");
@@ -160,6 +200,10 @@ public final class MycelNetwork {
      * Sends a serverbound packet. Does nothing when the server lacks the
      * channel (see {@link #canSendToServer}). Must only be called from client
      * code: the method references client classes and is never invoked on a server.
+     *
+     * @param <T>        the payload type
+     * @param definition the packet, from {@link PacketDefinition#toServer}
+     * @param payload    the packet to send
      */
     public static <T extends CustomPacketPayload> void sendToServer(PacketDefinition<T> definition, T payload) {
         checkDirection(definition, PacketDirection.TO_SERVER);

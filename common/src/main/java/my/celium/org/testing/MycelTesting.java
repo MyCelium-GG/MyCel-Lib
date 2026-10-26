@@ -28,6 +28,9 @@ public final class MycelTesting {
     /**
      * Runs Mycel on a headless platform ({@link Platform#UNKNOWN}, server
      * side, no other mods loaded) whose config folder is {@code configDir}.
+     *
+     * @param configDir where config files go, usually a JUnit {@code @TempDir}
+     * @return the platform now in use
      */
     public static PlatformService useConfigDir(Path configDir) {
         PlatformService platform = new HeadlessPlatform(Objects.requireNonNull(configDir, "configDir"));
@@ -35,7 +38,11 @@ public final class MycelTesting {
         return platform;
     }
 
-    /** Runs Mycel on {@code platform}, for tests that need more control (e.g. {@code isModLoaded}). */
+    /**
+     * Runs Mycel on {@code platform}, for tests that need more control (e.g. {@code isModLoaded}).
+     *
+     * @param platform the platform to use
+     */
     public static void usePlatform(PlatformService platform) {
         PlatformHolder.setForTesting(Objects.requireNonNull(platform, "platform"));
     }

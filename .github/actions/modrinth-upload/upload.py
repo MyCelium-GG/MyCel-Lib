@@ -8,6 +8,10 @@ comes from the MODRINTH_TOKEN environment variable and is never printed.
 
 Each --file is LOADER=PATH, with LOADER one of fabric, forge, neoforge, or
 "all" for Mycel's universal jar (one version tagged with every loader).
+
+--environment is Modrinth's side setting, which lives on each version:
+client_only, server_only_client_optional, client_or_server_prefers_both, ...
+Without it Modrinth copies the setting of the project's previous version.
 """
 
 import argparse
@@ -77,6 +81,7 @@ def main():
     parser.add_argument("--version", required=True)
     parser.add_argument("--mc", required=True, help="Minecraft version, e.g. 26.3")
     parser.add_argument("--release-type", choices=["release", "beta", "alpha"], default="release")
+    parser.add_argument("--environment", default="", help="Modrinth environment, e.g. client_only")
     parser.add_argument("--changelog", default="CHANGELOG.md")
     parser.add_argument("--require", action="append", default=[], help="slug of a required project, e.g. mycel")
     parser.add_argument("--fabric-require", action="append", default=[], help="extra required slug for Fabric files")
@@ -133,6 +138,8 @@ def main():
             "file_parts": ["jar"],
             "primary_file": "jar",
         }
+        if args.environment:
+            metadata["environment"] = args.environment
         if args.dry_run:
             print(f"[dry run] {os.path.basename(path)} -> {project['slug']}")
             print(json.dumps({k: v for k, v in metadata.items() if k != "changelog"}, indent=2))

@@ -13,6 +13,9 @@ inputs:
   project-id:
     description: "Modrinth project id or slug (default: modrinth_project_id in gradle.properties)"
     default: ""
+  environment:
+    description: "Modrinth environment, e.g. client_only (default: modrinth_environment in gradle.properties)"
+    default: ""
   name:
     description: Display name, e.g. "Better Pets"
     required: true
@@ -50,6 +53,7 @@ runs:
         MR_RELEASE_TYPE: ${{ inputs.release-type }}
         MR_DRY_RUN: ${{ inputs.dry-run }}
         MR_PROJECT: ${{ inputs.project-id }}
+        MR_ENVIRONMENT: ${{ inputs.environment }}
       run: |
         set -euo pipefail
         prop() { grep -E "^$1=" gradle.properties | head -1 | cut -d= -f2- | tr -d '[:space:]'; }
@@ -63,7 +67,8 @@ runs:
           exit 0
         fi
         args=(--project "$PROJECT" --name "$MR_NAME" --version "$MR_VERSION"
-              --mc "$(prop minecraft_version)" --release-type "$MR_RELEASE_TYPE")
+              --mc "$(prop minecraft_version)" --release-type "$MR_RELEASE_TYPE"
+              --environment "${MR_ENVIRONMENT:-$(prop modrinth_environment || true)}")
         for slug in $MR_REQUIRE; do args+=(--require "$slug"); done
         for slug in $MR_FABRIC_REQUIRE; do args+=(--fabric-require "$slug"); done
         while IFS= read -r line; do

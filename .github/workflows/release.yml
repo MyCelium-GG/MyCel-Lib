@@ -75,6 +75,7 @@ jobs:
         with:
           token: ${{ secrets.MODRINTH_TOKEN }}
           project-id: mycel
+          environment: client_or_server
           name: Mycel
           version: ${{ env.TAG }}
           require: ""

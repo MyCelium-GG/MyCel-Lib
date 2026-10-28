@@ -7,6 +7,8 @@
 #
 #   smoke.sh fabric|neoforge|forge MOD_ID
 #
+# SMOKE_MC picks another Minecraft line (e.g. 26.2, see the mod's mc/), and
+# SMOKE_GRADLE_ARGS adds Gradle arguments (e.g. an init script).
 # SMOKE_SECONDS caps the whole run (default 60). When time is up, everything
 # started here is killed; there is no waiting for a clean shutdown.
 # Logs land in build/smoke/<loader>/. Exit code 0 means PASS.
@@ -14,6 +16,7 @@ set -u
 LOADER="${1:?usage: smoke.sh fabric|neoforge|forge MOD_ID}"
 MOD_ID="${2:?usage: smoke.sh fabric|neoforge|forge MOD_ID}"
 LIMIT="${SMOKE_SECONDS:-60}"
+GRADLE_ARGS="${SMOKE_MC:+-Pmc=$SMOKE_MC} ${SMOKE_GRADLE_ARGS:-}"
 STAY="${STAY_SECONDS:-15}"
 OUT="build/smoke/$LOADER"
 mkdir -p "$OUT"
@@ -40,12 +43,12 @@ done
 kill_tree() { local c; for c in $(pgrep -P "$1"); do kill_tree "$c"; done; kill -9 "$1" 2>/dev/null; }
 END=$((SECONDS + LIMIT))
 
-./gradlew ":$LOADER:runServer" --no-daemon < /dev/null > "$OUT/server.log" 2>&1 &
+./gradlew ":$LOADER:runServer" --no-daemon $GRADLE_ARGS < /dev/null > "$OUT/server.log" 2>&1 &
 SPID=$!
 # Quick play connects once, so give the server a head start; the client
 # takes longer to reach its title screen anyway.
 until grep -q 'Done (' "$OUT/server.log" 2>/dev/null || [ $SECONDS -ge $((END - LIMIT / 2)) ]; do sleep 1; done
-./gradlew ":$LOADER:runClient" --no-daemon -PquickPlay=localhost:25565 > "$OUT/client.log" 2>&1 &
+./gradlew ":$LOADER:runClient" --no-daemon $GRADLE_ARGS -PquickPlay=localhost:25565 > "$OUT/client.log" 2>&1 &
 CPID=$!
 
 RESULT="TIMEOUT after ${LIMIT}s"

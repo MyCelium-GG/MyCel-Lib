@@ -2,7 +2,9 @@
 # Publishes ONE universal artifact loadable on every loader, for one Minecraft
 # version per tag: a plain tag (1.4.2) builds the default version from
 # gradle.properties, a suffixed tag (1.4.2-26.2, 1.4.2-26.1, pushed by the
-# release workflow) builds mc/<line>.properties. Mods depend on
+# release workflow) builds mc/<line>.properties. JitPack does not tell the
+# build which tag it is for, so each suffixed tag sits on its own commit that
+# adds .jitpack-mc holding the line. Mods depend on
 #   com.github.MyCelium-GG:MyCel-Lib:<tag>
 # (The per-loader modules exist so each toolchain can compile, but only the
 # merged universal jar is published.)
@@ -17,5 +19,5 @@ jdk:
 
 install:
   - sdk install gradle 9.7.1
-  - MC=$(echo "$VERSION" | sed -n 's/^[0-9]*\.[0-9]*\.[0-9]*-//p'); gradle :universal:publishToMavenLocal -q ${MC:+-Pmc=$MC}
+  - MC=$(cat .jitpack-mc 2>/dev/null || true); gradle :universal:publishToMavenLocal -q ${MC:+-Pmc=$MC}
 

@@ -15,7 +15,7 @@ independent, original implementation: no Collective code, names, or assets are u
 | | |
 |---|---|
 | Package | `my.celium.org` |
-| Maven | `com.github.MyCelium-GG:MyCel-Lib:1.5.0` (universal, via JitPack; `1.5.0-26.2` / `1.5.0-26.1` for older Minecraft) |
+| Maven | `com.github.MyCelium-GG:MyCel-Lib:1.5.1` (universal, via JitPack; `1.5.1-26.2` / `1.5.1-26.1` for older Minecraft) |
 | API docs | [api.mycelium-gg.org](https://api.mycelium-gg.org) (Javadoc; `./gradlew :common:javadoc` builds them locally) |
 | Minecraft | **26.3**, **26.2** and **26.1** (26.1, 26.1.1, 26.1.2) |
 | Java | **25** (Gradle daemon and compiler toolchain) |
@@ -56,7 +56,7 @@ Mycel ships as **one universal jar** that loads on Fabric, Forge and
 NeoForge alike (like Collective's `fabric+forge+neo` bundle): one download
 per Minecraft version, no per-loader artifacts to choose between. It is
 distributed through [JitPack](https://jitpack.io/#MyCelium-GG/MyCel-Lib).
-Use a release tag (e.g. `1.5.0`), a commit hash, or `main-SNAPSHOT` for bleeding edge:
+Use a release tag (e.g. `1.5.1`), a commit hash, or `main-SNAPSHOT` for bleeding edge:
 
 ```groovy
 repositories {
@@ -66,21 +66,21 @@ repositories {
 
 dependencies {
     // Fabric (loom)
-    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.0'
+    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
     // Forge (ForgeGradle userdev)
-    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.0'
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
     // NeoForge (ModDev)
-    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.0'
+    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
 }
 ```
 
 Each release is also built for older Minecraft lines: append the line to the
-tag (`com.github.MyCelium-GG:MyCel-Lib:1.5.0-26.2`, `...:1.5.0-26.1`). The
+tag (`com.github.MyCelium-GG:MyCel-Lib:1.5.1-26.2`, `...:1.5.1-26.1`). The
 release workflow pushes those tags; JitPack builds them with `-Pmc=<line>`.
 The 26.1 jar is built against 26.1.2 and loads on 26.1, 26.1.1 and 26.1.2.
 
 For local development, `./gradlew :universal:publishToMavenLocal` installs
-`my.celium.org:mycel-26.3:1.5.0` into `~/.m2` (add `-Pmc=26.2` or `-Pmc=26.1`
+`my.celium.org:mycel-26.3:1.5.1` into `~/.m2` (add `-Pmc=26.2` or `-Pmc=26.1`
 for `mycel-26.2` / `mycel-26.1`).
 
 ## Minimal integration

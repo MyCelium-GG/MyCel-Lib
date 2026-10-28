@@ -127,16 +127,24 @@ jobs:
             jars/mycel-*.jar
       # JitPack builds one Minecraft line per tag (see jitpack.yml); mods for
       # 26.2 depend on com.github.MyCelium-GG:MyCel-Lib:<tag>-26.2, and so on.
+      # Each such tag is a commit on top of the release adding .jitpack-mc,
+      # since JitPack cannot tell the build which tag it is for.
       - name: Tag extra lines for JitPack
         run: |
+          release=$(git rev-parse HEAD)
           for file in mc/*.properties; do
             line=$(basename "$file" .properties)
             if git ls-remote --exit-code --tags origin "refs/tags/$TAG-$line" > /dev/null; then
               echo "Tag $TAG-$line already exists."
-            else
-              git tag "$TAG-$line" HEAD
-              git push origin "refs/tags/$TAG-$line"
+              continue
             fi
+            git checkout -q --detach "$release"
+            echo "$line" > .jitpack-mc
+            git add .jitpack-mc
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "JitPack build of $TAG for Minecraft $line"
+            git tag "$TAG-$line"
+            git push origin "refs/tags/$TAG-$line"
           done
 
   # Only for new tags: re-running an old release by hand must not announce it

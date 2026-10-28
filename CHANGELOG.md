@@ -7,6 +7,15 @@ bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.
 Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.5.1] - 2026-10-28
+
+### Fixed
+
+- JitPack builds for 26.2 and 26.1 (`<version>-26.2`, `<version>-26.1`)
+  contained the 26.3 jar. The CurseForge, Modrinth and GitHub downloads of
+  1.5.0 were right; only JitPack (for mod developers) was affected, so use
+  1.5.1 there.
+
 ## [1.5.0] - 2026-10-28
 
 ### Added

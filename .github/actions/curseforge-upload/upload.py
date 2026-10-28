@@ -53,13 +53,18 @@ def resolve_versions(token, mc, java, loaders, environment):
                 return v["id"]
         fail(f"CurseForge has no game version '{name}'")
 
-    ids = [find(mc, lambda slug: slug.startswith("minecraft-"))]
+    ids = [find(name, lambda slug: slug.startswith("minecraft-")) for name in mc.split()]
     ids.append(find(f"Java {java}", lambda slug: slug == "java"))
     for loader in loaders:
         ids.append(find(LOADERS[loader], lambda slug: slug == "modloader"))
     for env in ENVIRONMENTS[environment]:
         ids.append(find(env, lambda slug: slug == "environment"))
     return ids
+
+
+def mc_label(mc):
+    names = mc.split()
+    return names[0] if len(names) == 1 else f"{names[0]}-{names[-1]}"
 
 
 def changelog_for(path, version):
@@ -93,7 +98,7 @@ def main():
     parser.add_argument("--project", required=True, help="numeric CurseForge project id")
     parser.add_argument("--name", required=True, help="display name, e.g. 'Better Pets'")
     parser.add_argument("--version", required=True)
-    parser.add_argument("--mc", required=True, help="Minecraft version, e.g. 26.3")
+    parser.add_argument("--mc", required=True, help="Minecraft version(s), space separated, e.g. 26.3 or \"26.1 26.1.1 26.1.2\"")
     parser.add_argument("--java", default="25")
     parser.add_argument("--environment", choices=sorted(ENVIRONMENTS), default="both")
     parser.add_argument("--release-type", choices=["release", "beta", "alpha"], default="release")
@@ -133,7 +138,7 @@ def main():
         metadata = {
             "changelog": notes,
             "changelogType": "markdown",
-            "displayName": f"{args.name} {args.version} ({label})",
+            "displayName": f"{args.name} {args.version} ({label}, {mc_label(args.mc)})",
             "gameVersions": resolve_versions(token, args.mc, args.java, loaders, args.environment),
             "releaseType": args.release_type,
         }

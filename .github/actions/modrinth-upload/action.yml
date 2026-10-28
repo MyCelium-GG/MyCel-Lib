@@ -22,6 +22,9 @@ inputs:
   version:
     description: Version being released (the tag)
     required: true
+  minecraft-version:
+    description: "Minecraft version(s) the jars load on, space separated (default: minecraft_versions, else minecraft_version, in gradle.properties)"
+    default: ""
   files:
     description: One LOADER=PATH per line (fabric, forge, neoforge, or all for a universal jar)
     required: true
@@ -47,6 +50,7 @@ runs:
         MODRINTH_TOKEN: ${{ inputs.token }}
         MR_NAME: ${{ inputs.name }}
         MR_VERSION: ${{ inputs.version }}
+        MR_MC: ${{ inputs.minecraft-version }}
         MR_FILES: ${{ inputs.files }}
         MR_REQUIRE: ${{ inputs.require }}
         MR_FABRIC_REQUIRE: ${{ inputs.fabric-require }}
@@ -66,8 +70,11 @@ runs:
           echo "::warning::MODRINTH_TOKEN secret is not set; skipping Modrinth."
           exit 0
         fi
+        # A list of game versions keeps its spaces, so not via prop.
+        MC=${MR_MC:-$(grep -E '^minecraft_versions=' gradle.properties | head -1 | cut -d= -f2- | xargs || true)}
+        MC=${MC:-$(prop minecraft_version)}
         args=(--project "$PROJECT" --name "$MR_NAME" --version "$MR_VERSION"
-              --mc "$(prop minecraft_version)" --release-type "$MR_RELEASE_TYPE"
+              --mc "$MC" --release-type "$MR_RELEASE_TYPE"
               --environment "${MR_ENVIRONMENT:-$(prop modrinth_environment || true)}")
         for slug in $MR_REQUIRE; do args+=(--require "$slug"); done
         for slug in $MR_FABRIC_REQUIRE; do args+=(--fabric-require "$slug"); done

@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import my.celium.org.event.EntityReplacedEvent;
 import my.celium.org.event.MycelEvents;
+import my.celium.org.internal.MinecraftCompat;
 import my.celium.org.logging.MycelLog;
 import my.celium.org.util.EntityUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -74,7 +75,7 @@ public final class EntityReplacer {
             EntityUtil.copyName(oldEntity, fresh);
         }
         if (options.preserveFlags()) {
-            fresh.setPermanentlyInvulnerable(oldEntity.isPermanentlyInvulnerable());
+            MinecraftCompat.setPermanentlyInvulnerable(fresh, MinecraftCompat.isPermanentlyInvulnerable(oldEntity));
             fresh.setNoGravity(oldEntity.isNoGravity());
             fresh.setSilent(oldEntity.isSilent());
             fresh.setGlowingTag(oldEntity.hasGlowingTag());

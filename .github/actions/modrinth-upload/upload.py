@@ -3,7 +3,8 @@
 
 Shared by every MyCelium repo (see action.yml). Required projects are given by
 slug and resolved to ids at run time. A loader whose version already exists on
-the project is skipped, so re-running a release never uploads twice. The token
+the project for the same Minecraft version is skipped, so re-running a release
+never uploads twice. The token
 comes from the MODRINTH_TOKEN environment variable and is never printed.
 
 Each --file is LOADER=PATH, with LOADER one of fabric, forge, neoforge, or
@@ -79,7 +80,7 @@ def main():
     parser.add_argument("--project", required=True, help="Modrinth project id or slug")
     parser.add_argument("--name", required=True, help="display name, e.g. 'Better Pets'")
     parser.add_argument("--version", required=True)
-    parser.add_argument("--mc", required=True, help="Minecraft version, e.g. 26.3")
+    parser.add_argument("--mc", required=True, help="Minecraft version(s), space separated, e.g. 26.3 or \"26.1 26.1.1 26.1.2\"")
     parser.add_argument("--release-type", choices=["release", "beta", "alpha"], default="release")
     parser.add_argument("--environment", default="", help="Modrinth environment, e.g. client_only")
     parser.add_argument("--changelog", default="CHANGELOG.md")
@@ -110,8 +111,13 @@ def main():
             ids[slug] = request(token, "/project/" + urllib.parse.quote(slug))["id"]
         return ids[slug]
 
+    mcs = args.mc.split()
+    mc_label = mcs[0] if len(mcs) == 1 else f"{mcs[0]}-{mcs[-1]}"
+
     existing = request(token, f"/project/{project['id']}/version")
-    taken = {(v["version_number"], loader) for v in existing for loader in v["loaders"]}
+    # One Mycel/mod version can ship for several Minecraft versions, so a
+    # loader only counts as uploaded for the same Minecraft version.
+    taken = {(v["version_number"], loader, mc) for v in existing for loader in v["loaders"] for mc in v["game_versions"]}
 
     notes = changelog_for(args.changelog, args.version)
     if notes is None:
@@ -120,18 +126,18 @@ def main():
 
     for loader, path in files:
         loaders = list(LOADERS) if loader == "all" else [loader]
-        if any((args.version, l) in taken for l in loaders):
-            print(f"{args.name} {args.version} for {', '.join(loaders)} is already on Modrinth; skipping")
+        if any((args.version, l, mc) in taken for l in loaders for mc in mcs):
+            print(f"{args.name} {args.version} for {', '.join(loaders)} on {mc_label} is already on Modrinth; skipping")
             continue
         required = [s for s in args.require + (args.fabric_require if loader == "fabric" else []) if s]
         label = "Fabric, Forge, NeoForge" if loader == "all" else LOADERS[loader]
         metadata = {
             "project_id": project["id"],
-            "name": f"{args.name} {args.version} ({label})",
+            "name": f"{args.name} {args.version} ({label}, {mc_label})",
             "version_number": args.version,
             "changelog": notes,
             "dependencies": [{"project_id": project_id(s), "dependency_type": "required"} for s in required],
-            "game_versions": [args.mc],
+            "game_versions": mcs,
             "version_type": args.release_type,
             "loaders": loaders,
             "featured": True,

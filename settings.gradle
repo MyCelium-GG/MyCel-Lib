@@ -44,6 +44,22 @@ plugins {
 }
 
 rootProject.name = 'mycel'
+
+// Other Minecraft versions: ./gradlew build -Pmc=26.2 loads mc/26.2.properties
+// over gradle.properties. Without -Pmc the build targets gradle.properties'
+// minecraft_version (the newest one).
+def mc = startParameter.projectProperties.mc
+if (mc) {
+    def overrides = file("mc/${mc}.properties")
+    if (!overrides.isFile()) {
+        def known = file('mc').list()?.findAll { it.endsWith('.properties') }?.collect { it - '.properties' }
+        throw new GradleException("No mc/${mc}.properties; buildable Minecraft versions besides the default: ${known}")
+    }
+    def props = new Properties()
+    overrides.withInputStream { props.load(it) }
+    gradle.beforeProject { project -> props.each { key, value -> project.ext.set(key, value) } }
+}
+
 // Forge 26.x builds with ForgeGradle 7 on the same Gradle 9 toolchain,
 // so all loaders share one unified build: ./gradlew build.
 include('common')

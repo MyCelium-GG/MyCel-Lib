@@ -2,12 +2,12 @@ package my.celium.org.util;
 
 import java.util.Set;
 
+import my.celium.org.internal.MinecraftCompat;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -52,7 +52,7 @@ public final class PlayerUtil {
         }
         ItemStack leftover = InventoryUtil.insert(player.getInventory(), stack.copy());
         if (!leftover.isEmpty()) {
-            player.drop(leftover, false, Prediction.SERVER_ONLY);
+            MinecraftCompat.dropAtFeet(player, leftover);
         }
     }
 

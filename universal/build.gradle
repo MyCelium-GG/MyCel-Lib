@@ -55,7 +55,7 @@ tasks.register('mergeServices') {
 tasks.register('universalJar', Jar) {
     dependsOn(fabricJar, forgeJar, neoForgeJar, tasks.named('mergeServices'))
     archiveBaseName = 'mycel'
-    archiveAppendix = minecraft_version
+    archiveAppendix = minecraft_line
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     from(project.zipTree(fabricJar.flatMap { it.archiveFile })) {
@@ -88,7 +88,7 @@ tasks.register('universalJar', Jar) {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
-            artifactId "mycel-${minecraft_version}"
+            artifactId "mycel-${minecraft_line}"
             artifact tasks.named('universalJar')
         }
     }

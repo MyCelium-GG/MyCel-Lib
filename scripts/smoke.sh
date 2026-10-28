@@ -6,12 +6,14 @@
 #
 #   scripts/smoke.sh fabric|neoforge|forge
 #
+# SMOKE_MC picks another Minecraft version (e.g. 26.2, see mc/).
 # SMOKE_SECONDS caps the whole run (default 60). When time is up, everything
 # started here is killed; there is no waiting for a clean shutdown.
 # Logs land in build/smoke/<loader>/. Exit code 0 means PASS.
 set -u
 LOADER="${1:?usage: scripts/smoke.sh fabric|neoforge|forge}"
 LIMIT="${SMOKE_SECONDS:-60}"
+MC_ARG=${SMOKE_MC:+-Pmc=$SMOKE_MC}
 cd "$(dirname "$0")/.."
 OUT="build/smoke/$LOADER"
 mkdir -p "$OUT"
@@ -38,12 +40,12 @@ done
 kill_tree() { local c; for c in $(pgrep -P "$1"); do kill_tree "$c"; done; kill -9 "$1" 2>/dev/null; }
 END=$((SECONDS + LIMIT))
 
-./gradlew ":example-$LOADER:runServer" --no-daemon < /dev/null > "$OUT/server.log" 2>&1 &
+./gradlew ":example-$LOADER:runServer" --no-daemon $MC_ARG < /dev/null > "$OUT/server.log" 2>&1 &
 SPID=$!
 # Quick play connects once, so give the server a head start; the client
 # takes longer to reach its title screen anyway.
 until grep -q 'Done (' "$OUT/server.log" 2>/dev/null || [ $SECONDS -ge $((END - LIMIT / 2)) ]; do sleep 1; done
-./gradlew ":example-$LOADER:runClient" --no-daemon -PquickPlay=localhost:25565 > "$OUT/client.log" 2>&1 &
+./gradlew ":example-$LOADER:runClient" --no-daemon $MC_ARG -PquickPlay=localhost:25565 > "$OUT/client.log" 2>&1 &
 CPID=$!
 
 RESULT="TIMEOUT after ${LIMIT}s"

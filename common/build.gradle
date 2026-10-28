@@ -14,6 +14,14 @@ neoForge {
     }
 }
 
+// Version-specific code (internal/MinecraftCompat), one folder per Minecraft
+// version; -Pmc picks the version (see settings.gradle).
+def mcSources = file("src/mc/${minecraft_line}/java")
+if (!mcSources.isDirectory()) {
+    throw new GradleException("Missing ${mcSources}: every buildable Minecraft version needs its MinecraftCompat")
+}
+sourceSets.main.java.srcDir(mcSources)
+
 dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:${rootProject.junit_version}"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -43,7 +51,7 @@ configurations {
 }
 
 artifacts {
-    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    sourceSets.main.java.srcDirs.each { commonJava it }
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 

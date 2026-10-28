@@ -3,9 +3,30 @@
 All notable changes to Mycel are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Mycel is versioned semantically (`MAJOR.MINOR.PATCH`); breaking API changes
-bump major. It ships as one universal jar for Minecraft 26.3
-(Fabric + Forge + NeoForge) through JitPack as
+bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.1;
+Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
+
+## [1.5.0] - 2026-10-28
+
+### Added
+
+- Minecraft 26.2 and 26.1 support (26.1, 26.1.1 and 26.1.2). Every release now
+  ships one universal jar (Fabric + Forge + NeoForge) per Minecraft line:
+  `mycel-26.3`, `mycel-26.2` and `mycel-26.1`. On JitPack the older lines are
+  `com.github.MyCelium-GG:MyCel-Lib:<version>-26.2` and `...:<version>-26.1`.
+  The API is the same on every version.
+- `MycelScreens.open(screen)` / `MycelScreens.current()`: switch and read the
+  current screen on every supported version (26.2 moved this from `Minecraft`
+  to `Minecraft.gui`). Mods that use them instead of vanilla build for 26.1
+  too.
+- `./gradlew build -Pmc=26.2` (or `-Pmc=26.1`) builds for an older line (see
+  "Other Minecraft versions" in the README).
+
+### Changed
+
+- CurseForge and Modrinth file names now include the Minecraft version, e.g.
+  "Mycel 1.5.0 (Fabric, Forge, NeoForge, 26.2)".
 
 ## [1.4.1] - 2026-10-26
 

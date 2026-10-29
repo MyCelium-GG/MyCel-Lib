@@ -228,7 +228,7 @@ Push a version tag (`git tag 1.3.2 && git push origin 1.3.2`). The `release`
 workflow builds the universal jar for every line (26.3, 26.2, 26.1), creates
 the GitHub Release with all of them, pushes a `<tag>-<line>` tag per older
 line for JitPack and uploads each
-jar to CurseForge and Modrinth for its Minecraft version, with the matching
+jar to CurseForge for its Minecraft version, with the matching
 `CHANGELOG.md` section as its changelog.
 To publish a tag that already exists, run the workflow by hand (Actions →
 release → Run workflow) and enter the tag.

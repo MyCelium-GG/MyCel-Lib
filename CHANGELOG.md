@@ -12,7 +12,7 @@ Fabric + Forge + NeoForge) through JitPack as
 ### Fixed
 
 - JitPack builds for 26.2 and 26.1 (`<version>-26.2`, `<version>-26.1`)
-  contained the 26.3 jar. The CurseForge, Modrinth and GitHub downloads of
+  contained the 26.3 jar. The CurseForge and GitHub downloads of
   1.5.0 were right; only JitPack (for mod developers) was affected, so use
   1.5.1 there.
 
@@ -34,7 +34,7 @@ Fabric + Forge + NeoForge) through JitPack as
 
 ### Changed
 
-- CurseForge and Modrinth file names now include the Minecraft version, e.g.
+- CurseForge file names now include the Minecraft version, e.g.
   "Mycel 1.5.0 (Fabric, Forge, NeoForge, 26.2)".
 
 ## [1.4.1] - 2026-10-26

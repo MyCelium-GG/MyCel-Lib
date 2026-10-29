@@ -3,8 +3,7 @@ name: release
 # Cut a release by pushing a version tag (e.g. 1.1.0): builds the universal
 # jar for every Minecraft line (the default from gradle.properties plus one per
 # mc/*.properties), uploads each to CurseForge (project 1726210, token in the
-# CURSEFORGE_TOKEN secret) and Modrinth (project mycel, token in the
-# MODRINTH_TOKEN secret) for its game versions, attaches all of them to one
+# CURSEFORGE_TOKEN secret) for its game versions, attaches all of them to one
 # GitHub Release and pushes a <tag>-<line> tag per extra line for JitPack.
 # Run it by hand with an existing tag to (re)publish that version.
 on:
@@ -18,10 +17,6 @@ on:
         required: true
       curseforge:
         description: Upload to CurseForge
-        type: boolean
-        default: true
-      modrinth:
-        description: Upload to Modrinth
         type: boolean
         default: true
 
@@ -77,20 +72,6 @@ jobs:
           token: ${{ secrets.CURSEFORGE_TOKEN }}
           project-id: "1726210"
           environment: both
-          name: Mycel
-          version: ${{ env.TAG }}
-          minecraft-version: ${{ env.MC_VERSIONS }}
-          require: ""
-          fabric-require: ""
-          files: |
-            all=universal/build/libs/mycel-${{ env.MC_LINE }}-*.jar
-      - name: Upload to Modrinth
-        if: ${{ github.event_name == 'push' || inputs.modrinth }}
-        uses: MyCelium-GG/MyCel-Lib/.github/actions/modrinth-upload@v1
-        with:
-          token: ${{ secrets.MODRINTH_TOKEN }}
-          project-id: mycel
-          environment: client_or_server
           name: Mycel
           version: ${{ env.TAG }}
           minecraft-version: ${{ env.MC_VERSIONS }}

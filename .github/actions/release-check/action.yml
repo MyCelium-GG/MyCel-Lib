@@ -1,0 +1,18 @@
+name: Release check
+description: >
+  Fails before anything is built or published when the release tag disagrees
+  with gradle.properties, the version in the code or CHANGELOG.md.
+
+inputs:
+  version:
+    description: The tag being released
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Version matches everywhere
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: '"$GITHUB_ACTION_PATH/check.sh" "$VERSION"'

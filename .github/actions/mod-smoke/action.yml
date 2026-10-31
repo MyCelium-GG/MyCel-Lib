@@ -13,6 +13,9 @@ inputs:
   mod-id:
     description: The mod id, as in gradle.properties
     required: true
+  mc:
+    description: Minecraft line to test (e.g. 26.2, see mc/); empty for the default
+    default: ""
   seconds:
     description: Cap for the whole run, including the first asset download
     default: "420"
@@ -27,11 +30,12 @@ runs:
         sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils mesa-vulkan-drivers vulkan-tools libopenal1
     - name: Compile the mod
       shell: bash
-      run: ./gradlew :${{ inputs.loader }}:classes --no-daemon
+      run: ./gradlew :${{ inputs.loader }}:classes --no-daemon ${{ inputs.mc && format('-Pmc={0}', inputs.mc) || '' }}
     - name: Join a dev server with a dev client
       shell: bash
       env:
         SMOKE_SECONDS: ${{ inputs.seconds }}
+        SMOKE_MC: ${{ inputs.mc }}
         ALSOFT_DRIVERS: "null"
         # No GPU on the runner: Mesa's software renderer, on a display with GLX.
         LIBGL_ALWAYS_SOFTWARE: "1"

@@ -65,12 +65,10 @@ repositories {
 }
 
 dependencies {
-    // Fabric (loom)
-    modImplementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
-    // Forge (ForgeGradle userdev)
-    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
-    // NeoForge (ModDev)
-    // implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
+    // Same line on Fabric, Forge and NeoForge. Minecraft 26.x is not
+    // obfuscated, so Loom has no modImplementation.
+    implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
+    // Minecraft 26.2 or 26.1: use 1.5.1-26.2 or 1.5.1-26.1
 }
 ```
 

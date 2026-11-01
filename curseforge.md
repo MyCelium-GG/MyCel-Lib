@@ -8,6 +8,7 @@ One download per Minecraft version covers Fabric, Forge and NeoForge. Minecraft 
 
 - [Better Pets](https://www.curseforge.com/minecraft/mc-mods/better-pets): list, find, call and rename your pets, with a full menu
 - [Essentials GG](https://www.curseforge.com/minecraft/mc-mods/essentials-gg): homes, warps, kits, economy and moderation for servers
+- [Dark Mode](https://www.curseforge.com/minecraft/mc-mods/dark-mode): every screen dark, including the Mojang loading screen and other mods' screens
 - [AutoBlockRefiller](https://www.curseforge.com/minecraft/mc-mods/auto-block-refiller): empty hotbar slots refill while you build
 - [BedrockPlacing](https://www.curseforge.com/minecraft/mc-mods/bedrock-placing): place blocks by clicking the air, like on Bedrock
 - [InstantXP](https://www.curseforge.com/minecraft/mc-mods/instant-xp-pickup): XP orbs are picked up instantly

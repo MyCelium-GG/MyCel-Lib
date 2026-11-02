@@ -264,6 +264,8 @@ public final class MycelConfigScreen extends Screen {
             super(screen, value, y);
             this.typed = value;
             this.pending = value.get();
+            // The button was made in Row's constructor, before pending had a value.
+            editor.setMessage(labelFor(pending));
         }
 
         @Override
@@ -286,29 +288,38 @@ public final class MycelConfigScreen extends Screen {
 
     /** Enum cycler button. */
     private static final class EnumRow extends Row {
-        private final List<String> names = new ArrayList<>();
+        // Filled on first use: Row's constructor calls createEditor before this
+        // class's own field initializers run, so neither may have one.
+        private List<String> names;
         private int index;
 
         EnumRow(MycelConfigScreen screen, ConfigValue<?> value, int y) {
             super(screen, value, y);
-            for (Object constant : enumConstants(value)) {
-                names.add(constant.toString());
+        }
+
+        private List<String> names() {
+            if (names == null) {
+                names = new ArrayList<>();
+                for (Object constant : enumConstants(value)) {
+                    names.add(constant.toString());
+                }
+                index = Math.max(0, names.indexOf(String.valueOf(value.get())));
             }
-            index = Math.max(0, names.indexOf(String.valueOf(value.get())));
+            return names;
         }
 
         @Override
         AbstractWidget createEditor(int y) {
             return Button.builder(Component.literal(currentName()), pressed -> {
-                if (!names.isEmpty()) {
-                    index = (index + 1) % names.size();
+                if (!names().isEmpty()) {
+                    index = (index + 1) % names().size();
                     pressed.setMessage(Component.literal(currentName()));
                 }
             }).bounds(widgetX(), y + 2, widgetWidth(), 20).build();
         }
 
         private String currentName() {
-            return names.isEmpty() ? "?" : names.get(index);
+            return names().isEmpty() ? "?" : names().get(index);
         }
 
         private static Object[] enumConstants(ConfigValue<?> value) {
@@ -321,10 +332,10 @@ public final class MycelConfigScreen extends Screen {
         @Override
         @SuppressWarnings({"unchecked", "rawtypes"})
         void apply() {
-            if (value instanceof ConfigValue.EnumValue enumValue && !names.isEmpty()) {
+            if (value instanceof ConfigValue.EnumValue enumValue && !names().isEmpty()) {
                 Object[] constants = enumValue.type().getEnumConstants();
                 for (Object constant : constants) {
-                    if (constant.toString().equals(names.get(index))) {
+                    if (constant.toString().equals(names().get(index))) {
                         ((ConfigValue) value).set(constant);
                         return;
                     }

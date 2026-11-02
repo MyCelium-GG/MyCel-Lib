@@ -7,6 +7,21 @@ bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.
 Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.5.2] - 2026-11-02
+
+### Fixed
+
+- The config screen crashed when a mod had a setting with a fixed list of
+  choices (an enum value). Those settings now show as a button that cycles
+  through the choices.
+- On/off settings in the config screen showed OFF when the screen opened, even
+  when they were on. Saving kept the right value; only the label was wrong.
+
+### Changed
+
+- Built against the newest loaders: NeoForge 26.3.0.101 (the first stable
+  NeoForge for 26.3) and 26.1.2.126, Forge 66.1.2 and Fabric API 0.165.0.
+
 ## [1.5.1] - 2026-10-28
 
 ### Fixed

@@ -28,11 +28,11 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.1'
+    implementation 'com.github.MyCelium-GG:MyCel-Lib:1.5.2'
 }
 ```
 
-Use `1.5.1-26.2` or `1.5.1-26.1` for older Minecraft.
+Use `1.5.2-26.2` or `1.5.2-26.1` for older Minecraft.
 
 ```java
 Mycel.initialize();

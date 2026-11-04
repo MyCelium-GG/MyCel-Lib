@@ -8,7 +8,7 @@ import net.minecraft.network.chat.MutableComponent;
 /**
  * The shared message kit with a mod's own tag, so every MyCelium mod reads the same:
  * {@code Pets » Rex came running.} The tag is bold bright red and the {@code »} grey. Warnings
- * are amber text and errors light red text; everything else is ivory. Get one with {@link TextUtil#voice(String)} and keep it in a constant.
+ * are yellow text, success lines bright green and errors bright orange; everything else is white. Get one with {@link TextUtil#voice(String)} and keep it in a constant.
  *
  * <p>Message parts are joined in order: strings become body text, components are appended as
  * they are (so names, values and buttons keep their style).
@@ -71,19 +71,19 @@ public final class ChatVoice {
     }
 
     /**
-     * Success line: tag, {@code »}, message (reads like an info line; the words say it worked).
+     * Success line: tag, {@code »}, message in bright green.
      *
-     * @param parts strings (body text) and components (kept as they are), in order
+     * @param parts strings (green text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent ok(Object... parts) {
-        return prefixed(TextUtil.msg(parts));
+        return tinted(TextUtil.SUCCESS, parts);
     }
 
     /**
-     * Error line: tag, {@code »}, message in light red.
+     * Error line: tag, {@code »}, message in bright orange.
      *
-     * @param parts strings (light red text) and components (kept as they are), in order
+     * @param parts strings (orange text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent fail(Object... parts) {
@@ -91,9 +91,9 @@ public final class ChatVoice {
     }
 
     /**
-     * Warning line: tag, {@code »}, message in amber.
+     * Warning line: tag, {@code »}, message in yellow.
      *
-     * @param parts strings (amber text) and components (kept as they are), in order
+     * @param parts strings (yellow text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent caution(Object... parts) {

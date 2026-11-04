@@ -13,9 +13,9 @@ import net.minecraft.network.chat.TextColor;
  * system - these just remove qualifier noise.
  *
  * <p>The palette below is the shared Mycel look, all custom hex colors on chat's dark backdrop:
- * a bold bright red tag and a grey {@code »} ({@code Mycel » }), warm ivory text, peach for names,
- * values and buttons, slate grey for details. Amber text means careful, light red text means
- * failed, green marks good news inside a line. No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
+ * a bold bright red tag and a grey {@code »} ({@code Mycel » }), white text, names, values and
+ * buttons, grey for details. Bright green text means it worked, yellow means careful, bright
+ * orange means failed. No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
  * {@link #red(String)}, {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
  * render through the matching tone.
  *
@@ -40,28 +40,28 @@ public final class TextUtil {
     // ------------------------------------------------------------ palette
     /** Bright red: the mod's tag at the start of every message, and headers. */
     public static final int PRIMARY = 0xFF3B3B;
-    /** Peach: names, values and anything else the reader looks for inside a line. */
-    public static final int ACCENT = 0xFFC48C;
-    /** Good news inside a line, like an available update. */
-    public static final int SUCCESS = 0x7BD88F;
-    /** Failed: the text of error lines. */
-    public static final int ERROR = 0xFF7B7B;
-    /** Careful: the text of warning lines, things that are off. */
-    public static final int WARN = 0xF5B85C;
-    /** Values and commands: peach, like names. */
-    public static final int INFO = 0xFFC48C;
-    /** Slate grey: details, versions, hints. */
-    public static final int MUTED = 0x9AA3AE;
+    /** White: names, values and anything else the reader looks for inside a line. */
+    public static final int ACCENT = 0xFFFFFF;
+    /** Bright green: success lines and good news, like an available update. */
+    public static final int SUCCESS = 0x4CFF6A;
+    /** Bright orange: the text of error lines. */
+    public static final int ERROR = 0xFF8A1F;
+    /** Yellow: the text of warning lines, things that are off. */
+    public static final int WARN = 0xFFD43B;
+    /** Values and commands: white, like names. */
+    public static final int INFO = 0xFFFFFF;
+    /** Grey: details, versions, hints, keys. */
+    public static final int MUTED = 0xA8A8A8;
     /** The quietest text: the {@code »}, ranges, separators. */
-    public static final int FAINT = 0x66717E;
-    /** Warm ivory body text. */
-    public static final int BODY = 0xE9E4DA;
-    /** Titles: a brighter ivory, used bold. */
-    public static final int BRIGHT = 0xFFF4E6;
+    public static final int FAINT = 0x7A7A7A;
+    /** White body text. */
+    public static final int BODY = 0xFFFFFF;
+    /** Titles: white, used bold. */
+    public static final int BRIGHT = 0xFFFFFF;
     /** Error text (same as {@link #ERROR}). */
-    static final int ERROR_TEXT = 0xFF7B7B;
-    /** Clickable labels: underlined peach. */
-    static final int LINK = 0xFFC48C;
+    static final int ERROR_TEXT = ERROR;
+    /** Clickable labels: underlined white. */
+    static final int LINK = 0xFFFFFF;
 
     /**
      * Shorthand for {@link Component#literal(String)}.
@@ -218,7 +218,7 @@ public final class TextUtil {
     }
 
     /**
-     * Red error text ({@link #ERROR}); pair it with a cross so it never reads as the brand.
+     * Orange error text ({@link #ERROR}).
      *
      * @param text the text
      * @return a new literal in that color
@@ -238,7 +238,7 @@ public final class TextUtil {
     }
 
     /**
-     * Purple text ({@link #INFO}), for values and commands.
+     * White text ({@link #INFO}), for values and commands.
      *
      * @param text the text
      * @return a new literal in that color
@@ -402,7 +402,7 @@ public final class TextUtil {
     }
 
     /**
-     * Warning line: tag + message in amber.
+     * Warning line: tag + message in yellow.
      *
      * @param text the message
      * @return the line
@@ -485,7 +485,7 @@ public final class TextUtil {
     }
 
     /**
-     * {@code key  value} pair: grey key, peach value.
+     * {@code key  value} pair: grey key, white value.
      *
      * @param key   the key
      * @param value the value
@@ -509,7 +509,7 @@ public final class TextUtil {
     // ------------------------------------------------------------ buttons
 
     /**
-     * A clickable label that runs a command: underlined peach, with a hover hint.
+     * A clickable label that runs a command: underlined white, with a hover hint.
      *
      * @param label   the label, e.g. {@code "Upload"}
      * @param command the command to run, with its leading slash

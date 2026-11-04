@@ -98,7 +98,7 @@ public final class MycelDiagnostics {
         String hint = ConfigStrings.constraintHint(value);
         MutableComponent row = TextUtil.empty()
                 .append(TextUtil.body(ConfigStrings.pathOf(value) + "  "))
-                .append(TextUtil.hex(current, isDefault ? TextUtil.BODY : TextUtil.ACCENT));
+                .append(TextUtil.hex(current, TextUtil.ACCENT).withStyle(style -> style.withBold(!isDefault)));
         String after = isDefault ? hint : "default " + ConfigStrings.defaultToString(value) + (hint.isBlank() ? "" : ", " + hint);
         if (!after.isBlank()) {
             row.append(TextUtil.faint("   " + after));

@@ -13,9 +13,9 @@ import net.minecraft.network.chat.TextColor;
  * system - these just remove qualifier noise.
  *
  * <p>The palette below is the shared Mycel look, all custom hex colors on chat's dark backdrop:
- * a bold bright red tag and a grey {@code »} ({@code Mycel » }), white text, names, values and
- * buttons, grey for details. Green text means it worked, orange means careful, dark
- * red means failed. No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
+ * a bold bright red tag and a grey {@code »} ({@code Mycel » }), off-white text, names, values and
+ * buttons, grey for details. Green text means it worked, amber means careful, rose
+ * means failed. No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
  * {@link #red(String)}, {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
  * render through the matching tone.
  *
@@ -41,27 +41,27 @@ public final class TextUtil {
     /** Bright red: the mod's tag at the start of every message, and headers. */
     public static final int PRIMARY = 0xFF3B3B;
     /** White: names, values and anything else the reader looks for inside a line. */
-    public static final int ACCENT = 0xFFFFFF;
-    /** Bright green: success lines and good news, like an available update. */
-    public static final int SUCCESS = 0x24FF00;
-    /** Dark red: the text of error lines. */
-    public static final int ERROR = 0xA80000;
-    /** Orange: the text of warning lines, things that are off. */
-    public static final int WARN = 0xFFB300;
+    public static final int ACCENT = 0xF4F4F5;
+    /** Green: success lines and good news, like an available update. */
+    public static final int SUCCESS = 0x4ADE80;
+    /** Rose: the text of error lines. */
+    public static final int ERROR = 0xF87171;
+    /** Amber: the text of warning lines, things that are off. */
+    public static final int WARN = 0xFBBF24;
     /** Values and commands: white, like names. */
-    public static final int INFO = 0xFFFFFF;
+    public static final int INFO = 0xF4F4F5;
     /** Grey: details, versions, hints, keys. */
-    public static final int MUTED = 0xA8A8A8;
+    public static final int MUTED = 0xA1A1AA;
     /** The quietest text: the {@code »}, ranges, separators. */
-    public static final int FAINT = 0x7A7A7A;
-    /** White body text. */
-    public static final int BODY = 0xFFFFFF;
+    public static final int FAINT = 0x71717A;
+    /** Off-white body text. */
+    public static final int BODY = 0xF4F4F5;
     /** Titles: white, used bold. */
     public static final int BRIGHT = 0xFFFFFF;
     /** Error text (same as {@link #ERROR}). */
     static final int ERROR_TEXT = ERROR;
-    /** Clickable labels: underlined white. */
-    static final int LINK = 0xFFFFFF;
+    /** Clickable labels: underlined off-white. */
+    static final int LINK = 0xF4F4F5;
 
     /**
      * Shorthand for {@link Component#literal(String)}.
@@ -218,7 +218,7 @@ public final class TextUtil {
     }
 
     /**
-     * Dark red error text ({@link #ERROR}).
+     * Rose error text ({@link #ERROR}).
      *
      * @param text the text
      * @return a new literal in that color
@@ -402,7 +402,7 @@ public final class TextUtil {
     }
 
     /**
-     * Warning line: tag + message in orange.
+     * Warning line: tag + message in amber.
      *
      * @param text the message
      * @return the line
@@ -509,7 +509,7 @@ public final class TextUtil {
     // ------------------------------------------------------------ buttons
 
     /**
-     * A clickable label that runs a command: underlined white, with a hover hint.
+     * A clickable label that runs a command: underlined off-white, with a hover hint.
      *
      * @param label   the label, e.g. {@code "Upload"}
      * @param command the command to run, with its leading slash

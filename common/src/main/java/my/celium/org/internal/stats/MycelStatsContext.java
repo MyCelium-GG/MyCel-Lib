@@ -10,22 +10,27 @@ import dev.faststats.config.SimpleConfig;
 import dev.faststats.internal.LoggerFactory;
 
 /**
- * FastStats context for Mycel. FastStats ships contexts per loader, but Mycel is one jar for
+ * FastStats context for Mycel and the mods using {@link my.celium.org.stats.ModStats}. FastStats ships contexts per loader, but Mycel is one jar for
  * every loader, so this one runs on Mycel's own thread and asks Mycel for platform details.
  * Clients only create it after the player said yes on the consent screen; dedicated servers
  * follow FastStats' first-run rule (a notice in the console, nothing sent on the first start).
  */
 final class MycelStatsContext extends SimpleContext {
     private final boolean client;
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
-        Thread thread = new Thread(runnable, "Mycel stats");
-        thread.setDaemon(true);
-        return thread;
-    });
+    private final String project;
+    private final String version;
+    private final ScheduledExecutorService executor;
 
     private MycelStatsContext(Factory factory) {
         super(factory, factory.loggers, factory.config, factory.platform, factory.token);
         this.client = factory.client;
+        this.project = factory.project;
+        this.version = factory.version;
+        this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "Mycel stats (" + factory.project + ")");
+            thread.setDaemon(true);
+            return thread;
+        });
         initializeManagedServices(factory);
     }
 
@@ -36,12 +41,12 @@ final class MycelStatsContext extends SimpleContext {
 
     @Override
     public String getProjectName() {
-        return "mycel";
+        return project;
     }
 
     @Override
     protected Metrics.Factory metricsFactory() {
-        return new MycelMetrics.Factory(this, client);
+        return new MycelMetrics.Factory(this, client, version);
     }
 
     @Override
@@ -64,13 +69,18 @@ final class MycelStatsContext extends SimpleContext {
         private final String platform;
         private final String token;
         private final boolean client;
+        private final String project;
+        private final String version;
 
-        Factory(LoggerFactory loggers, SimpleConfig config, String platform, String token, boolean client) {
+        Factory(LoggerFactory loggers, SimpleConfig config, String platform, String token, boolean client,
+                String project, String version) {
             this.loggers = loggers;
             this.config = config;
             this.platform = platform;
             this.token = token;
             this.client = client;
+            this.project = project;
+            this.version = version;
         }
 
         @Override

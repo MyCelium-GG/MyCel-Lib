@@ -16,6 +16,7 @@ Fabric + Forge + NeoForge) through JitPack as
 
 ### Added
 - Optional anonymous stats and error reports through FastStats, so we can see which MyCelium mods are used together, with which settings, and fix errors we would never hear about. Players are asked once on a screen at first start; dedicated servers send unless `shareStats` is false in `config/mycel.json` (nothing is sent on a server's very first start). Error reports only include errors that pass through MyCelium code, with user folder names and IP addresses removed. Details: https://wiki.mycelium-gg.org/privacy#mycel-stats
+- `ModStats` (`my.celium.org.stats`): mods can send anonymous stats to their own FastStats project through the FastStats copy inside Mycel, with no FastStats dependency of their own, on every Minecraft line, under Mycel's consent. Numbers, strings, lists, maps, usage counters and error reports for the mod's package.
 - `TextUtil.button`, `suggest`, `link` and `copy` for clickable labels in the shared style, and `TextUtil.ok(Object...)` / `note(Object...)`.
 
 ## [1.5.2] - 2026-11-02

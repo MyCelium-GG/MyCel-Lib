@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import dev.faststats.Metrics;
 import dev.faststats.SimpleContext;
 import dev.faststats.SimpleMetrics;
-import my.celium.org.Mycel;
 import my.celium.org.internal.PlatformHolder;
 import my.celium.org.internal.ServerHolder;
 import my.celium.org.platform.PlatformService;
@@ -14,10 +13,12 @@ import net.minecraft.server.MinecraftServer;
 /** The default fields FastStats' own loader contexts send, filled in from Mycel's platform layer. */
 final class MycelMetrics extends SimpleMetrics {
     private final boolean client;
+    private final String version;
 
-    private MycelMetrics(Factory factory, boolean client) {
+    private MycelMetrics(Factory factory, boolean client, String version) {
         super(factory);
         this.client = client;
+        this.version = version;
     }
 
     @Override
@@ -33,7 +34,7 @@ final class MycelMetrics extends SimpleMetrics {
     @Override
     protected void appendDefaultData(JsonObject data) {
         PlatformService platform = PlatformHolder.get();
-        data.addProperty("plugin_version", Mycel.getVersion());
+        data.addProperty("plugin_version", version);
         data.addProperty("server_type", platform.platform().displayName());
         data.addProperty("platform_version", platform.loaderVersion());
         data.addProperty("game_version", platform.minecraftVersion());
@@ -46,15 +47,17 @@ final class MycelMetrics extends SimpleMetrics {
 
     static final class Factory extends SimpleMetrics.Factory {
         private final boolean client;
+        private final String version;
 
-        Factory(SimpleContext context, boolean client) {
+        Factory(SimpleContext context, boolean client, String version) {
             super(context);
             this.client = client;
+            this.version = version;
         }
 
         @Override
         public Metrics create() {
-            return new MycelMetrics(this, client);
+            return new MycelMetrics(this, client, version);
         }
     }
 }

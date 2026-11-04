@@ -27,6 +27,8 @@ public final class MycelStats {
     private static volatile ConfigValue<Boolean> updateChecker;
     private static volatile ConfigValue<Boolean> dumpUploads;
     private static volatile boolean running;
+    /** Mods that called {@code ModStats.start()}; started together with Mycel's own stats. */
+    private static final java.util.List<my.celium.org.stats.ModStats> MODS = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     private MycelStats() {
     }
@@ -109,11 +111,54 @@ public final class MycelStats {
             running = true;
         } catch (LinkageError | RuntimeException e) {
             MycelLog.debug("Mycel stats are off: {}", e.toString());
+            return;
+        }
+        for (my.celium.org.stats.ModStats stats : MODS) {
+            startMod(stats);
         }
     }
 
     /**
-     * Hands an error to FastStats when error reports are on and the error went through MyCelium code.
+     * Called by {@code ModStats.start()}. Starts the mod's stats now when Mycel's are running,
+     * else when they start.
+     *
+     * @param stats the mod's stats
+     */
+    public static synchronized void register(my.celium.org.stats.ModStats stats) {
+        MODS.add(stats);
+        if (running) {
+            startMod(stats);
+        }
+    }
+
+    private static void startMod(my.celium.org.stats.ModStats stats) {
+        try {
+            StatsRuntime.startMod(stats);
+        } catch (LinkageError | RuntimeException e) {
+            MycelLog.debug("Stats for {} are off: {}", stats.mod().id(), e.toString());
+        }
+    }
+
+    /**
+     * Hands an error to one mod's project.
+     *
+     * @param stats the mod's stats
+     * @param error the error
+     */
+    public static void reportFor(my.celium.org.stats.ModStats stats, Throwable error) {
+        if (!running || error == null) {
+            return;
+        }
+        try {
+            StatsRuntime.reportFor(stats, error);
+        } catch (LinkageError | RuntimeException ignored) {
+            // Reporting must never cause problems of its own.
+        }
+    }
+
+    /**
+     * Hands an error to FastStats when error reports are on and the error went through MyCelium code:
+     * to the project of a mod using {@code ModStats} when it went through that mod, else to Mycel's.
      *
      * @param error the error
      */

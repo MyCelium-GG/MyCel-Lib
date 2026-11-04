@@ -453,26 +453,26 @@ public final class TextUtil {
     }
 
     /**
-     * Indented row under a {@link #header}, lined up with the header's text.
+     * Row under a {@link #header}: a grey {@code ›} and the content, no indent.
      *
      * @param content the row's content
      * @return the row
      */
     public static MutableComponent item(Component content) {
-        return empty().append(literal(ROW_INDENT)).append(content);
+        return empty().append(faint(ROW_MARKER)).append(content);
     }
 
-    /** Spaces that indent rows under a header. */
-    static final String ROW_INDENT = "   ";
+    /** Marker in front of rows under a header. */
+    static final String ROW_MARKER = "\u203A ";
 
     /**
-     * Indented continuation line (descriptions, hints) under an {@link #item}.
+     * Grey hint line (descriptions, hints) under a list of {@link #item}s.
      *
      * @param text the muted text
      * @return the line
      */
     public static MutableComponent detail(String text) {
-        return empty().append(literal(ROW_INDENT)).append(muted(text));
+        return muted(text);
     }
 
     /**
@@ -481,7 +481,7 @@ public final class TextUtil {
      * @return a new divider line
      */
     public static MutableComponent divider() {
-        return empty().append(literal(ROW_INDENT)).append(faint("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+        return empty().append(faint("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
     }
 
     /**

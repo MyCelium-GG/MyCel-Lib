@@ -45,15 +45,38 @@ public final class MycelDiagnostics {
     }
 
     /**
-     * Styled header for {@code /mycel info}: brand + platform + versions.
+     * Row with Mycel's version and update state, like {@code Using Mycel 1.6.0 (Up to date)}.
+     * The state is left out until the update check has an answer (or when it is turned off).
      *
-     * @return the header line
+     * @return the row
      */
-    public static MutableComponent headerLine() {
+    public static MutableComponent versionLine() {
+        MutableComponent row = TextUtil.empty().append(TextUtil.body("Using Mycel " + Mycel.getVersion()));
+        UpdateResult update = UpdateChecker.lastResult(Mycel.MOD_ID);
+        if (update != null && update.updateAvailable()) {
+            MutableComponent state = TextUtil.warn(" (Update " + update.latestVersion() + " available)");
+            if (update.url() != null) {
+                String url = update.url();
+                state.withStyle(style -> style
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.OpenUrl(java.net.URI.create(url)))
+                        .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(TextUtil.muted("Open the download page"))));
+            }
+            row.append(state);
+        } else if (update != null) {
+            row.append(TextUtil.success(" (Up to date)"));
+        }
+        return TextUtil.item(row);
+    }
+
+    /**
+     * Row with the loader and Minecraft version, like {@code Fabric 0.19.5, Minecraft 26.3}.
+     *
+     * @return the row
+     */
+    public static MutableComponent platformLine() {
         PlatformService platform = PlatformHolder.get();
-        return TextUtil.header("Mycel " + Mycel.getVersion(),
-                platform.platform().displayName() + " " + platform.loaderVersion()
-                        + ", Minecraft " + platform.minecraftVersion());
+        return TextUtil.item(TextUtil.body(platform.platform().displayName() + " " + platform.loaderVersion()
+                + ", Minecraft " + platform.minecraftVersion()));
     }
 
     /**

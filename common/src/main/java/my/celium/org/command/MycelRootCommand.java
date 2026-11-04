@@ -98,6 +98,11 @@ public final class MycelRootCommand {
 
         dispatcher.register(Commands.literal("mycel")
                 .requires(Commands.hasPermission(Commands.LEVEL_ALL))
+                .executes(context -> {
+                    sendHelp(context.getSource());
+                    my.celium.org.internal.stats.MycelStats.count("command_help");
+                    return 1;
+                })
                 .then(Commands.literal("help")
                         .executes(context -> {
                             sendHelp(context.getSource());
@@ -107,7 +112,9 @@ public final class MycelRootCommand {
                 .then(Commands.literal("info")
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
-                            CommandHelper.success(source, MycelDiagnostics.headerLine());
+                            CommandHelper.success(source, TextUtil.header("Info"));
+                            CommandHelper.success(source, MycelDiagnostics.versionLine());
+                            CommandHelper.success(source, MycelDiagnostics.platformLine());
                             CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Mods",
                                     String.valueOf(Mycel.getRegisteredMods().size())))
                                     .append(TextUtil.literal("   "))
@@ -193,7 +200,8 @@ public final class MycelRootCommand {
     // ------------------------------------------------------------------ help
 
     private static void sendHelp(CommandSourceStack source) {
-        CommandHelper.success(source, TextUtil.header("Mycel " + Mycel.getVersion(), "commands"));
+        CommandHelper.success(source, TextUtil.header("Commands"));
+        CommandHelper.success(source, MycelDiagnostics.versionLine());
         CommandHelper.success(source, usage("/mycel info", "versions"));
         CommandHelper.success(source, usage("/mycel mods", "the mods using Mycel"));
         CommandHelper.success(source, usage("/mycel get <mod> [setting]", "show settings"));

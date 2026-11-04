@@ -13,10 +13,12 @@ Fabric + Forge + NeoForge) through JitPack as
 - A new look for every chat message from Mycel and the mods built on it: `Mycel » message`, with the mod's name in bold bright red and a grey `»`; off-white text, green for success, amber warnings and rose errors. Custom colors throughout, no check or cross symbols.
 - `/mycel help` commands can be clicked to type them, `/mycel mods` names show their id and open their settings when clicked, and buttons like Upload, Open and Copy link are plain underlined labels.
 - Clearer wording everywhere, and "Did you mean ...?" when a setting name has a typo.
+- `/mycel` on its own shows the help. Help and `/mycel info` show `Using Mycel 1.6.0 (Up to date)` on their own line, or the version you can update to; rows under a header start with a grey `›`.
+- Update notices on join list one row per mod: `› Better Pets  1.2.1 → 1.2.2`, and `/mycel mods` shows updates the same way.
 
 ### Added
 - Optional anonymous stats and error reports through FastStats, so we can see which MyCelium mods are used together, with which settings, and fix errors we would never hear about. Players are asked once on a screen at first start; dedicated servers send unless `shareStats` is false in `config/mycel.json` (nothing is sent on a server's very first start). Error reports only include errors that pass through MyCelium code, with user folder names and IP addresses removed. Details: https://wiki.mycelium-gg.org/privacy#mycel-stats
-- `ModStats` (`my.celium.org.stats`): mods can send anonymous stats to their own FastStats project through the FastStats copy inside Mycel, with no FastStats dependency of their own, on every Minecraft line, under Mycel's consent. Numbers, strings, lists, maps, usage counters and error reports for the mod's package.
+- `ModStats` (`my.celium.org.stats`): mods can send anonymous stats to their own FastStats project through the FastStats copy inside Mycel, with no FastStats dependency of their own, on every Minecraft line, under Mycel's consent. Numbers, strings, lists, maps, usage counters, named counter maps (`counters(id)` + `count(id, key)`) and error reports for the mod's package.
 - `TextUtil.button`, `suggest`, `link` and `copy` for clickable labels in the shared style, and `TextUtil.ok(Object...)` / `note(Object...)`.
 
 ## [1.5.2] - 2026-11-02

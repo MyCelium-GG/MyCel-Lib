@@ -46,7 +46,9 @@ public final class UpdateNotices {
             NOTIFIED.remove(player.getUUID());  // results may still arrive; try again next join
             return;
         }
-        player.sendSystemMessage(line(updates));
+        for (Component line : lines(updates)) {
+            player.sendSystemMessage(line);
+        }
     }
 
     /** Registered mods whose last check found a newer version, in registration order. */
@@ -61,19 +63,33 @@ public final class UpdateNotices {
         return found;
     }
 
-    static Component line(List<UpdateResult> updates) {
-        MutableComponent names = TextUtil.empty();
-        for (int i = 0; i < updates.size(); i++) {
-            UpdateResult update = updates.get(i);
-            if (i > 0) {
-                names.append(TextUtil.faint(", "));
-            }
+    /** Header, then one {@code › Name  1.0.0 → 1.1.0} row per update. */
+    static List<Component> lines(List<UpdateResult> updates) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(TextUtil.header(updates.size() == 1 ? "Update ready" : "Updates ready")
+                .append(TextUtil.literal("   "))
+                .append(TextUtil.button("Show all", "/mycel mods", "See all Mycel mods and their versions")));
+        for (UpdateResult update : updates) {
             ModMetadata mod = find(update.modId());
-            names.append(TextUtil.hex((mod == null ? update.modId() : mod.name()) + " " + update.latestVersion(),
-                    TextUtil.ACCENT));
+            MutableComponent name = TextUtil.body(mod == null ? update.modId() : mod.name());
+            if (update.url() != null) {
+                String url = update.url();
+                name.withStyle(style -> style
+                        .withClickEvent(new net.minecraft.network.chat.ClickEvent.OpenUrl(java.net.URI.create(url)))
+                        .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(
+                                TextUtil.muted("Open the download page"))));
+            }
+            lines.add(TextUtil.item(name.append(TextUtil.literal("  ")).append(versions(update.currentVersion(), update.latestVersion()))));
         }
-        return TextUtil.note(updates.size() == 1 ? "Update ready: " : "Updates ready: ", names, "   ",
-                TextUtil.button("Show", "/mycel mods", "See all Mycel mods and their versions"));
+        return lines;
+    }
+
+    /** {@code 1.0.0 → 1.1.0}: the old version grey, the new one white. */
+    public static MutableComponent versions(String current, String latest) {
+        return TextUtil.empty()
+                .append(TextUtil.muted(current))
+                .append(TextUtil.faint(" \u2192 "))
+                .append(TextUtil.body(latest));
     }
 
     private static ModMetadata find(String modId) {

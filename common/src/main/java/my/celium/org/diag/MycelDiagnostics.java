@@ -45,25 +45,28 @@ public final class MycelDiagnostics {
     }
 
     /**
-     * Row with Mycel's version and update state, like {@code Using Mycel 1.6.0 (Up to date)}.
+     * Row with Mycel's version and update state, like {@code Using Mycel 1.6.0 (Up to date)} or {@code Using Mycel 1.5.0 → 1.6.0}.
      * The state is left out until the update check has an answer (or when it is turned off).
      *
      * @return the row
      */
     public static MutableComponent versionLine() {
-        MutableComponent row = TextUtil.empty().append(TextUtil.body("Using Mycel " + Mycel.getVersion()));
+        MutableComponent row = TextUtil.empty().append(TextUtil.body("Using Mycel"));
         UpdateResult update = UpdateChecker.lastResult(Mycel.MOD_ID);
         if (update != null && update.updateAvailable()) {
-            MutableComponent state = TextUtil.warn(" (Update " + update.latestVersion() + " available)");
+            MutableComponent versions = my.celium.org.internal.UpdateNotices.versions(Mycel.getVersion(), update.latestVersion());
             if (update.url() != null) {
                 String url = update.url();
-                state.withStyle(style -> style
+                versions.withStyle(style -> style
                         .withClickEvent(new net.minecraft.network.chat.ClickEvent.OpenUrl(java.net.URI.create(url)))
                         .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(TextUtil.muted("Open the download page"))));
             }
-            row.append(state);
-        } else if (update != null) {
-            row.append(TextUtil.success(" (Up to date)"));
+            row.append(TextUtil.literal(" ")).append(versions);
+        } else {
+            row.append(TextUtil.body(" " + Mycel.getVersion()));
+            if (update != null) {
+                row.append(TextUtil.muted(" (Up to date)"));
+            }
         }
         return TextUtil.item(row);
     }
@@ -96,15 +99,15 @@ public final class MycelDiagnostics {
                             mod.id() + ", " + settings + (settings == 1 ? " setting" : " settings")
                                     + ". Click to show them."))));
         }
-        MutableComponent row = TextUtil.empty()
-                .append(name)
-                .append(TextUtil.muted("  " + mod.version()));
+        UpdateResult update = UpdateChecker.lastResult(mod.id());
+        MutableComponent row = TextUtil.empty().append(name);
+        if (update != null && update.updateAvailable()) {
+            row.append(TextUtil.literal("  ")).append(my.celium.org.internal.UpdateNotices.versions(mod.version(), update.latestVersion()));
+        } else {
+            row.append(TextUtil.muted("  " + mod.version()));
+        }
         if (!Mycel.isEnabled(mod.id())) {
             row.append(TextUtil.warn("   off"));
-        }
-        UpdateResult update = UpdateChecker.lastResult(mod.id());
-        if (update != null && update.updateAvailable()) {
-            row.append(TextUtil.success("   update " + update.latestVersion()));
         }
         return TextUtil.item(row);
     }

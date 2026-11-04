@@ -15,7 +15,9 @@ class UpdateNoticesTest {
         List<UpdateResult> updates = List.of(
                 new UpdateResult("unregistered_a", "1.0.0", "1.1.0", null, true, 0L),
                 new UpdateResult("unregistered_b", "2.0.0", "2.0.1", null, true, 0L));
-        assertEquals("Mycel \u00BB Updates ready: unregistered_a 1.1.0, unregistered_b 2.0.1   Show",
-                TextUtil.plain(UpdateNotices.line(updates)));
+        List<String> lines = UpdateNotices.lines(updates).stream().map(TextUtil::plain).toList();
+        assertEquals(List.of("Mycel \u00BB Updates ready   Show all",
+                "\u203A unregistered_a  1.0.0 \u2192 1.1.0",
+                "\u203A unregistered_b  2.0.0 \u2192 2.0.1"), lines);
     }
 }

@@ -8,7 +8,7 @@ import net.minecraft.network.chat.MutableComponent;
 /**
  * The shared message kit with a mod's own tag, so every MyCelium mod reads the same:
  * {@code Pets » Rex came running.} The tag is bold bright red and the {@code »} grey. Warnings
- * are yellow text, success lines bright green and errors bright orange; everything else is white. Get one with {@link TextUtil#voice(String)} and keep it in a constant.
+ * are yellow text, success lines green and errors dark red; everything else is white. Get one with {@link TextUtil#voice(String)} and keep it in a constant.
  *
  * <p>Message parts are joined in order: strings become body text, components are appended as
  * they are (so names, values and buttons keep their style).
@@ -71,7 +71,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Success line: tag, {@code »}, message in bright green.
+     * Success line: tag, {@code »}, message in green.
      *
      * @param parts strings (green text) and components (kept as they are), in order
      * @return the line
@@ -81,9 +81,9 @@ public final class ChatVoice {
     }
 
     /**
-     * Error line: tag, {@code »}, message in bright orange.
+     * Error line: tag, {@code »}, message in dark red.
      *
-     * @param parts strings (orange text) and components (kept as they are), in order
+     * @param parts strings (dark red text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent fail(Object... parts) {

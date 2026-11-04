@@ -51,9 +51,9 @@ public final class TextUtil {
     /** Values and commands: white, like names. */
     public static final int INFO = 0xF4F4F5;
     /** Grey: details, versions, hints, keys. */
-    public static final int MUTED = 0xA1A1AA;
+    public static final int MUTED = 0xC4C4CC;
     /** The quietest text: the {@code »}, ranges, separators. */
-    public static final int FAINT = 0x71717A;
+    public static final int FAINT = 0x9A9AA3;
     /** Off-white body text. */
     public static final int BODY = 0xF4F4F5;
     /** Titles: white, underlined. */

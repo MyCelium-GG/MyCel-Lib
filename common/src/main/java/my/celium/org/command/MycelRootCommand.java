@@ -219,7 +219,7 @@ public final class MycelRootCommand {
                 .append(TextUtil.body(command).withStyle(style -> style
                         .withClickEvent(new ClickEvent.SuggestCommand(typed))
                         .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted("Click to type it")))))
-                .append(TextUtil.muted("  " + blurb)));
+                .append(TextUtil.muted(" - " + blurb)));
     }
 
     /** A mod's display name, or its id when it is not registered. */

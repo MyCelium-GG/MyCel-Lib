@@ -126,6 +126,6 @@ public final class ChatVoice {
      * @return the header line
      */
     public MutableComponent header(String title, String detail) {
-        return header(title).append(TextUtil.muted("  " + detail));
+        return header(title).append(TextUtil.muted(" - " + detail));
     }
 }

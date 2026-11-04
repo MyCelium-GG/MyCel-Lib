@@ -6,18 +6,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
- * The shared message kit with a mod's own tag, so every MyCelium mod reads
- * the same: a slim colored bar, the mod's name in grey, then the message
- * ({@code ▌ Pets  Rex came running.}). The bar's color says what kind of line it
- * is: brand red for information, green for done, amber for careful, red for
- * failed (failed lines also get light red text). Get one with
- * {@link TextUtil#voice(String)} and keep it in a constant.
+ * The shared message kit with a mod's own tag, so every MyCelium mod reads the same:
+ * {@code Pets » Rex came running.} The tag is bold coral; the {@code »} says what kind of line it
+ * is: grey for information, green for done, amber for careful, red for failed (failed lines also
+ * get light red text). Get one with {@link TextUtil#voice(String)} and keep it in a constant.
  *
- * <p>Message parts are joined in order: strings become body text, components
- * are appended as they are (so names, values and buttons keep their style).
+ * <p>Message parts are joined in order: strings become body text, components are appended as
+ * they are (so names, values and buttons keep their style).
  */
 public final class ChatVoice {
-    private static final String BAR = "\u258C";
+    private static final String CHEVRON = " \u00BB ";
 
     private final String tag;
 
@@ -35,18 +33,18 @@ public final class ChatVoice {
     }
 
     /**
-     * The start of a line: brand red bar, then the tag in grey.
+     * The start of a plain line: bold coral tag and a grey {@code »}.
      *
      * @return a new prefix component
      */
     public MutableComponent prefix() {
-        return start(TextUtil.PRIMARY);
+        return start(TextUtil.FAINT);
     }
 
-    private MutableComponent start(int barColor) {
+    private MutableComponent start(int chevronColor) {
         return TextUtil.empty()
-                .append(TextUtil.hex(BAR, barColor))
-                .append(TextUtil.muted(" " + tag + "  "));
+                .append(TextUtil.hex(tag, TextUtil.PRIMARY).withStyle(style -> style.withBold(true)))
+                .append(TextUtil.hex(CHEVRON, chevronColor));
     }
 
     /**
@@ -60,7 +58,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Info line: brand bar, tag, message.
+     * Info line: tag, grey {@code »}, message.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
@@ -70,7 +68,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Success line: green bar, tag, message.
+     * Success line: tag, green {@code »}, message.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
@@ -80,7 +78,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Error line: red bar, tag, message in light red.
+     * Error line: tag, red {@code »}, message in light red.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
@@ -94,7 +92,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Warning line: amber bar, tag, message.
+     * Warning line: tag, amber {@code »}, message.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
@@ -104,17 +102,20 @@ public final class ChatVoice {
     }
 
     /**
-     * Header line opening a multi-line reply: brand bar, tag, bold title. When the
-     * title already starts with the tag (like {@code "Mycel 1.6.0"}) the tag is left out.
+     * Header line opening a multi-line reply: tag, {@code »}, bold title. When the title already
+     * starts with the tag (like {@code "Mycel 1.6.0"}) it becomes the tag plus the rest, with no
+     * {@code »}: {@code Mycel 1.6.0}.
      *
      * @param title the title
      * @return the header line
      */
     public MutableComponent header(String title) {
-        MutableComponent start = title.startsWith(tag)
-                ? TextUtil.empty().append(TextUtil.hex(BAR, TextUtil.PRIMARY)).append(TextUtil.literal(" "))
-                : prefix();
-        return start.append(TextUtil.hex(title, TextUtil.BRIGHT).withStyle(style -> style.withBold(true)));
+        if (title.startsWith(tag + " ")) {
+            return TextUtil.empty()
+                    .append(TextUtil.hex(tag, TextUtil.PRIMARY).withStyle(style -> style.withBold(true)))
+                    .append(TextUtil.hex(title.substring(tag.length()), TextUtil.BRIGHT).withStyle(style -> style.withBold(true)));
+        }
+        return prefix().append(TextUtil.hex(title, TextUtil.BRIGHT).withStyle(style -> style.withBold(true)));
     }
 
     /**

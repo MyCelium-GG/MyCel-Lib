@@ -70,7 +70,7 @@ public final class UpdateNotices {
             }
             ModMetadata mod = find(update.modId());
             names.append(TextUtil.hex((mod == null ? update.modId() : mod.name()) + " " + update.latestVersion(),
-                    TextUtil.BRIGHT));
+                    TextUtil.ACCENT));
         }
         return TextUtil.note(updates.size() == 1 ? "Update ready: " : "Updates ready: ", names, "   ",
                 TextUtil.button("Show", "/mycel mods", "See all Mycel mods and their versions"));

@@ -12,12 +12,12 @@ import net.minecraft.network.chat.TextColor;
  * Small helpers around {@link Component}. Mycel does not rebuild the text
  * system - these just remove qualifier noise.
  *
- * <p>The palette below is the shared Mycel look: calm on chat's dark backdrop. One
- * brand red marks the source of a message (a slim bar in front of it), names and
- * values are white, everything else is two greys, and green, amber and red only
- * ever mean done, careful and failed. No legacy {@code §} colors. Legacy helpers
- * ({@link #green(String)}, {@link #red(String)}, {@link #gray(String)},
- * {@link #gold(String)}) keep their signatures and render through the matching tone.
+ * <p>The palette below is the shared Mycel look, all custom hex colors on chat's dark backdrop:
+ * a bold coral tag ({@code Mycel » }), warm ivory text, peach for names, values and buttons,
+ * slate grey for details. Green, amber and red only ever mean done, careful and failed (they color
+ * the {@code »}). No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
+ * {@link #red(String)}, {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
+ * render through the matching tone.
  *
  * <p>Most mods only need a {@link ChatVoice}, so every reply carries the mod's tag:
  * <pre>{@code
@@ -38,30 +38,30 @@ public final class TextUtil {
     }
 
     // ------------------------------------------------------------ palette
-    /** Brand red: the bar in front of a mod's messages, and its headers. */
-    public static final int PRIMARY = 0xE5534B;
-    /** Highlights inside a line: names, values the reader looks for. */
-    public static final int ACCENT = 0xFFFFFF;
-    /** Done: the bar of success lines. */
-    public static final int SUCCESS = 0x6CC070;
-    /** Failed: the bar of error lines, and their text in a lighter tone. */
-    public static final int ERROR = 0xE5534B;
-    /** Careful: the bar of warning lines. */
-    public static final int WARN = 0xE0A040;
-    /** Values and commands: as bright as names, so they stand out from body text. */
-    public static final int INFO = 0xFFFFFF;
-    /** Secondary text: details, versions, the mod tag. */
-    public static final int MUTED = 0x9A9A9A;
-    /** The quietest text: brackets, hints, ranges. */
-    public static final int FAINT = 0x6E6E6E;
-    /** Body text. */
-    public static final int BODY = 0xD8D8D8;
-    /** Titles and names that should stand out from body text. */
-    public static final int BRIGHT = 0xFFFFFF;
-    /** Error text: a lighter red than the bar, so errors read at a glance. */
-    static final int ERROR_TEXT = 0xF28B82;
-    /** Clickable labels: underlined, near white. */
-    static final int LINK = 0xF2F2F2;
+    /** Coral: the mod's tag at the start of every message, and headers. */
+    public static final int PRIMARY = 0xFF6F61;
+    /** Peach: names, values and anything else the reader looks for inside a line. */
+    public static final int ACCENT = 0xFFC48C;
+    /** Done: the {@code »} of success lines, good news inside a line. */
+    public static final int SUCCESS = 0x7BD88F;
+    /** Failed: the {@code »} and the text of error lines. */
+    public static final int ERROR = 0xFF7B7B;
+    /** Careful: the {@code »} of warning lines, things that are off. */
+    public static final int WARN = 0xF5B85C;
+    /** Values and commands: peach, like names. */
+    public static final int INFO = 0xFFC48C;
+    /** Slate grey: details, versions, hints. */
+    public static final int MUTED = 0x9AA3AE;
+    /** The quietest text: the {@code »} of plain lines, ranges, separators. */
+    public static final int FAINT = 0x66717E;
+    /** Warm ivory body text. */
+    public static final int BODY = 0xE9E4DA;
+    /** Titles: a brighter ivory, used bold. */
+    public static final int BRIGHT = 0xFFF4E6;
+    /** Error text (same as {@link #ERROR}). */
+    static final int ERROR_TEXT = 0xFF7B7B;
+    /** Clickable labels: underlined peach. */
+    static final int LINK = 0xFFC48C;
 
     /**
      * Shorthand for {@link Component#literal(String)}.
@@ -402,7 +402,7 @@ public final class TextUtil {
     }
 
     /**
-     * Warning line: amber bar + message.
+     * Warning line: amber {@code »} + message.
      *
      * @param text the message
      * @return the line
@@ -462,8 +462,8 @@ public final class TextUtil {
         return empty().append(literal(ROW_INDENT)).append(content);
     }
 
-    /** Spaces that line rows up under the text after the bar. */
-    static final String ROW_INDENT = "     ";
+    /** Spaces that indent rows under a header. */
+    static final String ROW_INDENT = "   ";
 
     /**
      * Indented continuation line (descriptions, hints) under an {@link #item}.
@@ -485,14 +485,14 @@ public final class TextUtil {
     }
 
     /**
-     * {@code key  value} pair: grey key, bright value.
+     * {@code key  value} pair: grey key, peach value.
      *
      * @param key   the key
      * @param value the value
      * @return the pair
      */
     public static MutableComponent keyValue(String key, String value) {
-        return empty().append(muted(key + "  ")).append(literal(value).withStyle(style -> style.withColor(BRIGHT)));
+        return empty().append(muted(key + "  ")).append(literal(value).withStyle(style -> style.withColor(ACCENT)));
     }
 
     /**
@@ -509,7 +509,7 @@ public final class TextUtil {
     // ------------------------------------------------------------ buttons
 
     /**
-     * A clickable label that runs a command: underlined, near white, with a hover hint.
+     * A clickable label that runs a command: underlined peach, with a hover hint.
      *
      * @param label   the label, e.g. {@code "Upload"}
      * @param command the command to run, with its leading slash

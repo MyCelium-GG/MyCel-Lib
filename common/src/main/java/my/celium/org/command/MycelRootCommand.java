@@ -145,7 +145,7 @@ public final class MycelRootCommand {
                                     config.reload();
                                     my.celium.org.internal.stats.MycelStats.count("command_reload");
                                     CommandHelper.success(source, TextUtil.ok("Reloaded the settings of ",
-                                            TextUtil.hex(displayName(modId), TextUtil.BRIGHT), "."));
+                                            TextUtil.hex(displayName(modId), TextUtil.ACCENT), "."));
                                     return 1;
                                 })))
                 .then(Commands.literal("get")
@@ -260,7 +260,7 @@ public final class MycelRootCommand {
         }
         CommandHelper.success(source, TextUtil.header(ConfigStrings.pathOf(value), displayName(modId)));
         CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Value  ",
-                TextUtil.hex(ConfigStrings.valueToString(value), TextUtil.BRIGHT))));
+                TextUtil.hex(ConfigStrings.valueToString(value), TextUtil.ACCENT))));
         CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Default", ConfigStrings.defaultToString(value))));
         CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Allowed", ConfigStrings.describe(value))));
         if (!value.description().isBlank()) {
@@ -299,7 +299,7 @@ public final class MycelRootCommand {
             return 1;
         }
         CommandHelper.success(source, TextUtil.ok(ConfigStrings.pathOf(value) + " is now ",
-                TextUtil.hex(after, TextUtil.BRIGHT), TextUtil.muted("   was " + before)));
+                TextUtil.hex(after, TextUtil.ACCENT), TextUtil.muted("   was " + before)));
         return 1;
     }
 
@@ -314,7 +314,7 @@ public final class MycelRootCommand {
         if (path == null) {
             config.resetAll();
             CommandHelper.success(source,
-                    TextUtil.ok("All settings of ", TextUtil.hex(displayName(modId), TextUtil.BRIGHT),
+                    TextUtil.ok("All settings of ", TextUtil.hex(displayName(modId), TextUtil.ACCENT),
                             " are back to their defaults."));
             return Math.max(1, config.values().size());
         }
@@ -325,7 +325,7 @@ public final class MycelRootCommand {
         }
         value.reset();
         CommandHelper.success(source, TextUtil.ok(ConfigStrings.pathOf(value) + " is back to ",
-                TextUtil.hex(ConfigStrings.defaultToString(value), TextUtil.BRIGHT), "."));
+                TextUtil.hex(ConfigStrings.defaultToString(value), TextUtil.ACCENT), "."));
         return 1;
     }
 

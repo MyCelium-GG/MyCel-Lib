@@ -10,7 +10,7 @@ Fabric + Forge + NeoForge) through JitPack as
 ## [1.6.0] - 2026-11-04
 
 ### Changed
-- A new look for every chat message from Mycel and the mods built on it: a slim colored bar shows what kind of message it is (brand red for information, green for done, amber for careful, red for failed), followed by the mod's name in grey and the message. Fewer colors, no check or cross symbols, white names and values.
+- A new look for every chat message from Mycel and the mods built on it: `Mycel » message`, with the mod's name in bold coral and the `»` showing what kind of message it is (grey for information, green for done, amber for careful, red for failed, with light red text). Custom colors throughout: warm ivory text, peach names and values, no check or cross symbols.
 - `/mycel help` commands can be clicked to type them, `/mycel mods` names show their id and open their settings when clicked, and buttons like Upload, Open and Copy link are plain underlined labels.
 - Clearer wording everywhere, and "Did you mean ...?" when a setting name has a typo.
 

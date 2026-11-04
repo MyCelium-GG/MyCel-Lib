@@ -65,7 +65,7 @@ public final class MycelDiagnostics {
     public static MutableComponent modLine(ModMetadata mod) {
         MycelConfig config = Mycel.getConfig(mod.id());
         int settings = config == null ? 0 : config.values().size();
-        MutableComponent name = TextUtil.hex(mod.name(), TextUtil.BRIGHT);
+        MutableComponent name = TextUtil.hex(mod.name(), TextUtil.ACCENT);
         if (config != null) {
             name.withStyle(style -> style
                     .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/mycel get " + mod.id()))
@@ -98,7 +98,7 @@ public final class MycelDiagnostics {
         String hint = ConfigStrings.constraintHint(value);
         MutableComponent row = TextUtil.empty()
                 .append(TextUtil.body(ConfigStrings.pathOf(value) + "  "))
-                .append(TextUtil.hex(current, isDefault ? TextUtil.BODY : TextUtil.BRIGHT));
+                .append(TextUtil.hex(current, isDefault ? TextUtil.BODY : TextUtil.ACCENT));
         String after = isDefault ? hint : "default " + ConfigStrings.defaultToString(value) + (hint.isBlank() ? "" : ", " + hint);
         if (!after.isBlank()) {
             row.append(TextUtil.faint("   " + after));

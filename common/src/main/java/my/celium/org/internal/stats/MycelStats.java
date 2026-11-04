@@ -134,6 +134,13 @@ public final class MycelStats {
     private static void startMod(my.celium.org.stats.ModStats stats) {
         try {
             StatsRuntime.startMod(stats);
+            if (Boolean.getBoolean("mycel.stats.selftest")) {
+                // Dev runs only: one recognizable count in every counter, to check they arrive.
+                stats.count("dev_test");
+                for (String id : stats.counterIds()) {
+                    stats.count(id, "dev_test");
+                }
+            }
         } catch (LinkageError | RuntimeException e) {
             MycelLog.debug("Stats for {} are off: {}", stats.mod().id(), e.toString());
         }

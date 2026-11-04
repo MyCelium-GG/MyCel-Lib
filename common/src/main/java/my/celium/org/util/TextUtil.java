@@ -13,9 +13,9 @@ import net.minecraft.network.chat.TextColor;
  * system - these just remove qualifier noise.
  *
  * <p>The palette below is the shared Mycel look, all custom hex colors on chat's dark backdrop:
- * a bold coral tag ({@code Mycel » }), warm ivory text, peach for names, values and buttons,
- * slate grey for details. Green, amber and red only ever mean done, careful and failed (they color
- * the {@code »}). No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
+ * a bold bright red tag and a grey {@code »} ({@code Mycel » }), warm ivory text, peach for names,
+ * values and buttons, slate grey for details. Amber text means careful, light red text means
+ * failed, green marks good news inside a line. No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
  * {@link #red(String)}, {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
  * render through the matching tone.
  *
@@ -38,21 +38,21 @@ public final class TextUtil {
     }
 
     // ------------------------------------------------------------ palette
-    /** Coral: the mod's tag at the start of every message, and headers. */
-    public static final int PRIMARY = 0xFF6F61;
+    /** Bright red: the mod's tag at the start of every message, and headers. */
+    public static final int PRIMARY = 0xFF3B3B;
     /** Peach: names, values and anything else the reader looks for inside a line. */
     public static final int ACCENT = 0xFFC48C;
-    /** Done: the {@code »} of success lines, good news inside a line. */
+    /** Good news inside a line, like an available update. */
     public static final int SUCCESS = 0x7BD88F;
-    /** Failed: the {@code »} and the text of error lines. */
+    /** Failed: the text of error lines. */
     public static final int ERROR = 0xFF7B7B;
-    /** Careful: the {@code »} of warning lines, things that are off. */
+    /** Careful: the text of warning lines, things that are off. */
     public static final int WARN = 0xF5B85C;
     /** Values and commands: peach, like names. */
     public static final int INFO = 0xFFC48C;
     /** Slate grey: details, versions, hints. */
     public static final int MUTED = 0x9AA3AE;
-    /** The quietest text: the {@code »} of plain lines, ranges, separators. */
+    /** The quietest text: the {@code »}, ranges, separators. */
     public static final int FAINT = 0x66717E;
     /** Warm ivory body text. */
     public static final int BODY = 0xE9E4DA;
@@ -402,7 +402,7 @@ public final class TextUtil {
     }
 
     /**
-     * Warning line: amber {@code »} + message.
+     * Warning line: tag + message in amber.
      *
      * @param text the message
      * @return the line

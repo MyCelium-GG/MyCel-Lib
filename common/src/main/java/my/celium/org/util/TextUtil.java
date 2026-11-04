@@ -56,7 +56,7 @@ public final class TextUtil {
     public static final int FAINT = 0x71717A;
     /** Off-white body text. */
     public static final int BODY = 0xF4F4F5;
-    /** Titles: white, used bold. */
+    /** Titles: white, underlined. */
     public static final int BRIGHT = 0xFFFFFF;
     /** Error text (same as {@link #ERROR}). */
     static final int ERROR_TEXT = ERROR;

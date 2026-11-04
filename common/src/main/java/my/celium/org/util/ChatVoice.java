@@ -101,7 +101,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Header line opening a multi-line reply: tag, {@code »}, bold title. When the title already
+     * Header line opening a multi-line reply: tag, {@code »}, underlined title. When the title already
      * starts with the tag (like {@code "Mycel 1.6.0"}) it becomes the tag plus the rest, with no
      * {@code »}: {@code Mycel 1.6.0}.
      *
@@ -112,9 +112,10 @@ public final class ChatVoice {
         if (title.startsWith(tag + " ")) {
             return TextUtil.empty()
                     .append(TextUtil.hex(tag, TextUtil.PRIMARY).withStyle(style -> style.withBold(true)))
-                    .append(TextUtil.hex(title.substring(tag.length()), TextUtil.BRIGHT).withStyle(style -> style.withBold(true)));
+                    .append(TextUtil.literal(" "))
+                    .append(TextUtil.hex(title.substring(tag.length() + 1), TextUtil.BRIGHT).withStyle(style -> style.withUnderlined(true)));
         }
-        return prefix().append(TextUtil.hex(title, TextUtil.BRIGHT).withStyle(style -> style.withBold(true)));
+        return prefix().append(TextUtil.hex(title, TextUtil.BRIGHT).withStyle(style -> style.withUnderlined(true)));
     }
 
     /**

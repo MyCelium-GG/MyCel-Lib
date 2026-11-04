@@ -41,6 +41,24 @@ repositories {
         name = 'Sponge'
         url = 'https://repo.spongepowered.org/repository/maven-public'
     }
+    maven {
+        name = 'FastStats'
+        url = 'https://repo.faststats.dev/releases'
+        content {
+            includeGroup('dev.faststats.metrics')
+        }
+    }
+}
+
+// FastStats core (anonymous stats and error reports, see internal/stats). Compile only here:
+// the universal jar bundles it renamed into my.celium.org.internal.faststats, so it never
+// clashes with a FastStats copy another mod ships.
+dependencies {
+    // Not transitive: Minecraft brings Gson (26.1 pins an older one) and the annotations are compile-time only.
+    compileOnly("dev.faststats.metrics:core:${faststats_version}") { transitive = false }
+    compileOnly("dev.faststats.metrics:config:${faststats_version}") { transitive = false }
+    compileOnly 'org.jetbrains:annotations:26.0.2'
+    compileOnly 'org.jspecify:jspecify:1.0.0'
 }
 
 // Declare capabilities on the outgoing configurations.

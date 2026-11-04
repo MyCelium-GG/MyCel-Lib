@@ -12,13 +12,12 @@ import net.minecraft.network.chat.TextColor;
  * Small helpers around {@link Component}. Mycel does not rebuild the text
  * system - these just remove qualifier noise.
  *
- * <p>The palette below is the shared Mycel look and uses only colors from the
- * MyCelium wiki's dark theme (chat is always drawn on a dark backdrop): the
- * page tokens ({@code --accent}, {@code --text}, {@code --muted}) plus the
- * dark code-highlight tokens ({@code .tok-*}). No legacy {@code §} colors.
- * Legacy helpers ({@link #green(String)}, {@link #red(String)},
- * {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
- * render through the matching tone.
+ * <p>The palette below is the shared Mycel look: calm on chat's dark backdrop. One
+ * brand red marks the source of a message (a slim bar in front of it), names and
+ * values are white, everything else is two greys, and green, amber and red only
+ * ever mean done, careful and failed. No legacy {@code §} colors. Legacy helpers
+ * ({@link #green(String)}, {@link #red(String)}, {@link #gray(String)},
+ * {@link #gold(String)}) keep their signatures and render through the matching tone.
  *
  * <p>Most mods only need a {@link ChatVoice}, so every reply carries the mod's tag:
  * <pre>{@code
@@ -39,27 +38,30 @@ public final class TextUtil {
     }
 
     // ------------------------------------------------------------ palette
-    // Wiki dark-theme tokens (style.css). Nothing here exists outside the wiki.
-    /** Wiki red ({@code --accent}) - brand, headers. */
-    public static final int PRIMARY = 0xEF5350;
-    /** Wiki blue ({@code .tok-k}) - mod names, config keys. */
-    public static final int ACCENT = 0x79B8FF;
-    /** Wiki green ({@code .tok-s}) - success. */
-    public static final int SUCCESS = 0x7EE787;
-    /** Wiki red ({@code --accent}) - errors. Always paired with a cross so it never reads as the brand. */
-    public static final int ERROR = 0xEF5350;
-    /** Wiki orange ({@code .tok-a}) - warnings / gold. */
-    public static final int WARN = 0xFFA657;
-    /** Wiki purple ({@code .tok-n}) - values, commands. */
-    public static final int INFO = 0xD2A8FF;
-    /** Wiki {@code --muted} - secondary text. */
-    public static final int MUTED = 0xA3A3A3;
-    /** Wiki comment grey ({@code .tok-c}) - brackets, bullets, dividers. */
-    public static final int FAINT = 0x8B949E;
-    /** Wiki {@code --text} - body text. */
-    public static final int BODY = 0xE6E6E6;
-    /** White - names and titles that should stand out from body text. */
+    /** Brand red: the bar in front of a mod's messages, and its headers. */
+    public static final int PRIMARY = 0xE5534B;
+    /** Highlights inside a line: names, values the reader looks for. */
+    public static final int ACCENT = 0xFFFFFF;
+    /** Done: the bar of success lines. */
+    public static final int SUCCESS = 0x6CC070;
+    /** Failed: the bar of error lines, and their text in a lighter tone. */
+    public static final int ERROR = 0xE5534B;
+    /** Careful: the bar of warning lines. */
+    public static final int WARN = 0xE0A040;
+    /** Values and commands: as bright as names, so they stand out from body text. */
+    public static final int INFO = 0xFFFFFF;
+    /** Secondary text: details, versions, the mod tag. */
+    public static final int MUTED = 0x9A9A9A;
+    /** The quietest text: brackets, hints, ranges. */
+    public static final int FAINT = 0x6E6E6E;
+    /** Body text. */
+    public static final int BODY = 0xD8D8D8;
+    /** Titles and names that should stand out from body text. */
     public static final int BRIGHT = 0xFFFFFF;
+    /** Error text: a lighter red than the bar, so errors read at a glance. */
+    static final int ERROR_TEXT = 0xF28B82;
+    /** Clickable labels: underlined, near white. */
+    static final int LINK = 0xF2F2F2;
 
     /**
      * Shorthand for {@link Component#literal(String)}.
@@ -400,13 +402,33 @@ public final class TextUtil {
     }
 
     /**
-     * Warning line: orange bang + message.
+     * Warning line: amber bar + message.
      *
      * @param text the message
      * @return the line
      */
     public static MutableComponent caution(String text) {
         return MYCEL.caution(text);
+    }
+
+    /**
+     * Success line built from parts, like {@link ChatVoice#ok(Object...)} with the Mycel tag.
+     *
+     * @param parts strings (body text) and components (kept as they are), in order
+     * @return the line
+     */
+    public static MutableComponent ok(Object... parts) {
+        return MYCEL.ok(parts);
+    }
+
+    /**
+     * Info line built from parts, like {@link ChatVoice#note(Object...)} with the Mycel tag.
+     *
+     * @param parts strings (body text) and components (kept as they are), in order
+     * @return the line
+     */
+    public static MutableComponent note(Object... parts) {
+        return MYCEL.note(parts);
     }
 
     /**
@@ -431,14 +453,17 @@ public final class TextUtil {
     }
 
     /**
-     * Indented row under a {@link #header}: faint bullet + content, no tag.
+     * Indented row under a {@link #header}, lined up with the header's text.
      *
      * @param content the row's content
      * @return the row
      */
     public static MutableComponent item(Component content) {
-        return empty().append(faint("  \u2022 ")).append(content);
+        return empty().append(literal(ROW_INDENT)).append(content);
     }
+
+    /** Spaces that line rows up under the text after the bar. */
+    static final String ROW_INDENT = "     ";
 
     /**
      * Indented continuation line (descriptions, hints) under an {@link #item}.
@@ -447,7 +472,7 @@ public final class TextUtil {
      * @return the line
      */
     public static MutableComponent detail(String text) {
-        return empty().append(faint("     ")).append(muted(text));
+        return empty().append(literal(ROW_INDENT)).append(muted(text));
     }
 
     /**
@@ -456,18 +481,18 @@ public final class TextUtil {
      * @return a new divider line
      */
     public static MutableComponent divider() {
-        return faint("  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+        return empty().append(literal(ROW_INDENT)).append(faint("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
     }
 
     /**
-     * {@code key}: value pair with accent key and bright value.
+     * {@code key  value} pair: grey key, bright value.
      *
      * @param key   the key
      * @param value the value
      * @return the pair
      */
     public static MutableComponent keyValue(String key, String value) {
-        return empty().append(accent(key)).append(muted(": ")).append(body(value));
+        return empty().append(muted(key + "  ")).append(literal(value).withStyle(style -> style.withColor(BRIGHT)));
     }
 
     /**
@@ -478,7 +503,63 @@ public final class TextUtil {
      * @return the pair
      */
     public static MutableComponent keyValue(String key, Component value) {
-        return empty().append(accent(key)).append(muted(": ")).append(value);
+        return empty().append(muted(key + "  ")).append(value);
+    }
+
+    // ------------------------------------------------------------ buttons
+
+    /**
+     * A clickable label that runs a command: underlined, near white, with a hover hint.
+     *
+     * @param label   the label, e.g. {@code "Upload"}
+     * @param command the command to run, with its leading slash
+     * @param hover   what the hover hint says
+     * @return the button
+     */
+    public static MutableComponent button(String label, String command, String hover) {
+        return clickable(label, new net.minecraft.network.chat.ClickEvent.RunCommand(command), hover);
+    }
+
+    /**
+     * A clickable label that fills the chat box with a command, for commands that need more typing.
+     *
+     * @param label   the label
+     * @param command the command to put in the chat box
+     * @param hover   what the hover hint says
+     * @return the button
+     */
+    public static MutableComponent suggest(String label, String command, String hover) {
+        return clickable(label, new net.minecraft.network.chat.ClickEvent.SuggestCommand(command), hover);
+    }
+
+    /**
+     * A clickable label that opens a web page.
+     *
+     * @param label the label, e.g. {@code "Open"}
+     * @param url   the https address
+     * @return the link
+     */
+    public static MutableComponent link(String label, String url) {
+        return clickable(label, new net.minecraft.network.chat.ClickEvent.OpenUrl(java.net.URI.create(url)), url);
+    }
+
+    /**
+     * A clickable label that copies text to the clipboard.
+     *
+     * @param label the label, e.g. {@code "Copy link"}
+     * @param text  what gets copied
+     * @return the button
+     */
+    public static MutableComponent copy(String label, String text) {
+        return clickable(label, new net.minecraft.network.chat.ClickEvent.CopyToClipboard(text), "Copy to clipboard");
+    }
+
+    private static MutableComponent clickable(String label, net.minecraft.network.chat.ClickEvent click, String hover) {
+        return literal(label).withStyle(style -> style
+                .withColor(LINK)
+                .withUnderlined(true)
+                .withClickEvent(click)
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(muted(hover))));
     }
 
     /**

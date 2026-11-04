@@ -1,7 +1,6 @@
 package my.celium.org.command;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,15 +101,17 @@ public final class MycelRootCommand {
                 .then(Commands.literal("help")
                         .executes(context -> {
                             sendHelp(context.getSource());
+                            my.celium.org.internal.stats.MycelStats.count("command_help");
                             return 1;
                         }))
                 .then(Commands.literal("info")
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
                             CommandHelper.success(source, MycelDiagnostics.headerLine());
-                            CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Registered mods",
+                            CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Mods",
                                     String.valueOf(Mycel.getRegisteredMods().size())))
-                                    .append(TextUtil.muted("  see /mycel mods")));
+                                    .append(TextUtil.literal("   "))
+                                    .append(TextUtil.button("Show", "/mycel mods", "List the mods using Mycel")));
                             return 1;
                         }))
                 .then(Commands.literal("mods")
@@ -119,7 +120,7 @@ public final class MycelRootCommand {
                             List<ModMetadata> mods = List.copyOf(Mycel.getRegisteredMods());
                             if (mods.isEmpty()) {
                                 CommandHelper.success(source,
-                                        TextUtil.note("No mods registered with Mycel yet."));
+                                        TextUtil.note("No mods use Mycel yet."));
                             } else {
                                 CommandHelper.success(source,
                                         TextUtil.header("Mods", String.valueOf(mods.size())));
@@ -142,9 +143,9 @@ public final class MycelRootCommand {
                                         return 0;
                                     }
                                     config.reload();
-                                    CommandHelper.success(source, TextUtil.ok(
-                                            "Reloaded '" + modId + "' (" + config.values().size()
-                                                    + " values)."));
+                                    my.celium.org.internal.stats.MycelStats.count("command_reload");
+                                    CommandHelper.success(source, TextUtil.ok("Reloaded the settings of ",
+                                            TextUtil.hex(displayName(modId), TextUtil.BRIGHT), "."));
                                     return 1;
                                 })))
                 .then(Commands.literal("get")
@@ -193,23 +194,34 @@ public final class MycelRootCommand {
 
     private static void sendHelp(CommandSourceStack source) {
         CommandHelper.success(source, TextUtil.header("Mycel " + Mycel.getVersion(), "commands"));
-        CommandHelper.success(source, usage("/mycel info", "library, loader and MC versions"));
-        CommandHelper.success(source, usage("/mycel mods", "mods registered with Mycel"));
-        CommandHelper.success(source,
-                usage("/mycel get <mod> [key]", "show one or all config values"));
-        CommandHelper.success(source,
-                usage("/mycel set <mod> <key> <value>", "change + save a config value (op)"));
-        CommandHelper.success(source,
-                usage("/mycel reset <mod> [key]", "restore defaults (op)"));
+        CommandHelper.success(source, usage("/mycel info", "versions"));
+        CommandHelper.success(source, usage("/mycel mods", "the mods using Mycel"));
+        CommandHelper.success(source, usage("/mycel get <mod> [setting]", "show settings"));
+        CommandHelper.success(source, usage("/mycel set <mod> <setting> <value>", "change a setting (op)"));
+        CommandHelper.success(source, usage("/mycel reset <mod> [setting]", "back to defaults (op)"));
         CommandHelper.success(source, usage("/mycel reload <mod>", "re-read the config file (op)"));
-        CommandHelper.success(source, usage("/mycel dump", "support report with a shareable link (op)"));
-        CommandHelper.success(source, TextUtil.detail("Keys look like category.key, or just key when unique."));
+        CommandHelper.success(source, usage("/mycel dump", "support report to share (op)"));
+        CommandHelper.success(source, TextUtil.detail("Click a command to type it."));
     }
 
     private static Component usage(String command, String blurb) {
+        int placeholder = command.replace('[', '<').indexOf(" <");
+        String typed = placeholder < 0 ? command : command.substring(0, placeholder + 1);
         return TextUtil.item(TextUtil.empty()
-                .append(TextUtil.infoText(command))
+                .append(TextUtil.body(command).withStyle(style -> style
+                        .withClickEvent(new ClickEvent.SuggestCommand(typed))
+                        .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted("Click to type it")))))
                 .append(TextUtil.muted("  " + blurb)));
+    }
+
+    /** A mod's display name, or its id when it is not registered. */
+    private static String displayName(String modId) {
+        for (ModMetadata mod : Mycel.getRegisteredMods()) {
+            if (mod.id().equals(modId)) {
+                return mod.name();
+            }
+        }
+        return modId;
     }
 
     // ------------------------------------------------------------------ get
@@ -221,10 +233,11 @@ public final class MycelRootCommand {
             return 0;
         }
         if (config.values().isEmpty()) {
-            CommandHelper.success(source, TextUtil.note("'" + modId + "' has no config values."));
+            CommandHelper.success(source, TextUtil.note(displayName(modId) + " has no settings."));
             return 1;
         }
-        CommandHelper.success(source, TextUtil.header(modId, config.values().size() + " values"));
+        CommandHelper.success(source, TextUtil.header(displayName(modId),
+                config.values().size() + (config.values().size() == 1 ? " setting" : " settings")));
         for (ConfigValue<?> value : config.values()) {
             CommandHelper.success(source, MycelDiagnostics.configLine(value));
             if (!value.description().isBlank()) {
@@ -245,13 +258,11 @@ public final class MycelRootCommand {
             CommandHelper.failure(source, unknownKey(config, path));
             return 0;
         }
-        CommandHelper.success(source, TextUtil.header(ConfigStrings.pathOf(value), modId));
-        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Value",
-                value.isDefault() ? TextUtil.body(ConfigStrings.valueToString(value))
-                        : TextUtil.infoText(ConfigStrings.valueToString(value)))));
-        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Type", ConfigStrings.describe(value))));
-        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Default",
-                ConfigStrings.defaultToString(value))));
+        CommandHelper.success(source, TextUtil.header(ConfigStrings.pathOf(value), displayName(modId)));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Value  ",
+                TextUtil.hex(ConfigStrings.valueToString(value), TextUtil.BRIGHT))));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Default", ConfigStrings.defaultToString(value))));
+        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Allowed", ConfigStrings.describe(value))));
         if (!value.description().isBlank()) {
             CommandHelper.success(source, TextUtil.detail(value.description()));
         }
@@ -272,26 +283,23 @@ public final class MycelRootCommand {
             return 0;
         }
         String before = ConfigStrings.valueToString(value);
+        my.celium.org.internal.stats.MycelStats.count("command_set");
         try {
             ConfigStrings.parseAndSet(value, rawValue);
         } catch (IllegalArgumentException e) {
-            CommandHelper.failure(source, TextUtil.fail("Invalid value for '"
-                    + ConfigStrings.pathOf(value) + "': " + e.getMessage()));
-            CommandHelper.failure(source, TextUtil.detail("Expected " + ConfigStrings.describe(value)
-                    + " \u00B7 current " + before));
+            CommandHelper.failure(source, TextUtil.fail("'" + rawValue.trim() + "' does not work for "
+                    + ConfigStrings.pathOf(value) + ": " + e.getMessage()));
+            CommandHelper.failure(source, TextUtil.detail("Allowed: " + ConfigStrings.describe(value)
+                    + ". It stays " + before + "."));
             return 0;
         }
         String after = ConfigStrings.valueToString(value);
         if (before.equals(after)) {
-            CommandHelper.success(source, TextUtil.note("'" + ConfigStrings.pathOf(value)
-                    + "' is already " + after + "."));
+            CommandHelper.success(source, TextUtil.note(ConfigStrings.pathOf(value) + " is already " + after + "."));
             return 1;
         }
-        CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
-                .append(TextUtil.success("\u2714 "))
-                .append(TextUtil.accent(ConfigStrings.pathOf(value)))
-                .append(TextUtil.muted("  " + before + " \u2192 "))
-                .append(TextUtil.infoText(after))));
+        CommandHelper.success(source, TextUtil.ok(ConfigStrings.pathOf(value) + " is now ",
+                TextUtil.hex(after, TextUtil.BRIGHT), TextUtil.muted("   was " + before)));
         return 1;
     }
 
@@ -306,7 +314,8 @@ public final class MycelRootCommand {
         if (path == null) {
             config.resetAll();
             CommandHelper.success(source,
-                    TextUtil.ok("Reset '" + modId + "' to defaults (" + config.values().size() + " values)."));
+                    TextUtil.ok("All settings of ", TextUtil.hex(displayName(modId), TextUtil.BRIGHT),
+                            " are back to their defaults."));
             return Math.max(1, config.values().size());
         }
         ConfigValue<?> value = ConfigStrings.find(config, path);
@@ -315,8 +324,8 @@ public final class MycelRootCommand {
             return 0;
         }
         value.reset();
-        CommandHelper.success(source, TextUtil.ok("Reset '" + ConfigStrings.pathOf(value) + "' to "
-                + ConfigStrings.defaultToString(value) + "."));
+        CommandHelper.success(source, TextUtil.ok(ConfigStrings.pathOf(value) + " is back to ",
+                TextUtil.hex(ConfigStrings.defaultToString(value), TextUtil.BRIGHT), "."));
         return 1;
     }
 
@@ -334,23 +343,17 @@ public final class MycelRootCommand {
 
     private static int previewDump(CommandSourceStack source) {
         int mods = PlatformHolder.get().loadedMods().size();
-        CommandHelper.success(source, TextUtil.header("Dump", "what gets shared"));
-        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Versions",
-                "Minecraft, loader, Java, OS, memory")));
-        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Mods",
-                mods + " installed, " + Mycel.getRegisteredMods().size() + " Mycel mods with their config")));
-        CommandHelper.success(source, TextUtil.item(TextUtil.keyValue("Log",
-                "end of logs/latest.log")));
+        CommandHelper.success(source, TextUtil.header("Support dump"));
+        CommandHelper.success(source, TextUtil.item(TextUtil.body("Versions, " + mods + " mods, the settings of "
+                + Mycel.getRegisteredMods().size() + " Mycel mods and the end of your log.")));
         CommandHelper.success(source, TextUtil.detail("IP addresses, tokens and your home folder are removed."));
         if (MycelDump.uploadsEnabled()) {
-            CommandHelper.success(source, TextUtil.detail(
-                    "Uploaded to pastes.dev: anyone with the link can read it."));
-            CommandHelper.success(source, TextUtil.item(button("Upload", "/mycel dump confirm",
+            CommandHelper.success(source, TextUtil.detail("It goes to pastes.dev: anyone with the link can read it."));
+            CommandHelper.success(source, TextUtil.item(TextUtil.button("Upload", "/mycel dump confirm",
                     "Save the dump and upload it")));
         } else {
-            CommandHelper.success(source, TextUtil.detail(
-                    "Uploads are off in mycel.json, so the dump is only saved to mycel-dumps/."));
-            CommandHelper.success(source, TextUtil.item(button("Save", "/mycel dump confirm",
+            CommandHelper.success(source, TextUtil.detail("Uploads are off in mycel.json, so it is only saved to mycel-dumps/."));
+            CommandHelper.success(source, TextUtil.item(TextUtil.button("Save", "/mycel dump confirm",
                     "Save the dump to mycel-dumps/")));
         }
         return 1;
@@ -359,7 +362,7 @@ public final class MycelRootCommand {
     private static int runDump(CommandSourceStack source) {
         long wait = MycelDump.cooldownSeconds();
         if (MycelDump.uploadsEnabled() && wait > 0) {
-            CommandHelper.failure(source, TextUtil.fail("Just uploaded one. Try again in " + wait + "s."));
+            CommandHelper.failure(source, TextUtil.caution("You just uploaded one. Try again in " + wait + " s."));
             return 0;
         }
         String json = MycelDump.toJson(MycelDump.collect(source.getServer()));
@@ -372,29 +375,26 @@ public final class MycelRootCommand {
         String local = saved == null ? null : "mycel-dumps/" + saved.getFileName();
         if (!MycelDump.uploadsEnabled()) {
             if (local == null) {
-                CommandHelper.failure(source, TextUtil.fail("Could not save the dump. See the log."));
+                CommandHelper.failure(source, TextUtil.fail("Could not save the dump. The log says why."));
                 return 0;
             }
-            CommandHelper.success(source, TextUtil.ok("Saved " + local + "."));
+            CommandHelper.success(source, TextUtil.ok("Saved to " + local + "."));
             return 1;
         }
-        CommandHelper.success(source, TextUtil.note("Uploading dump\u2026"));
+        CommandHelper.success(source, TextUtil.note("Uploading the dump..."));
         MinecraftServer server = source.getServer();
         MycelDump.upload(json).whenComplete((key, error) -> server.execute(() -> {
             if (error != null) {
                 Throwable cause = error.getCause() != null ? error.getCause() : error;
                 MycelLog.warn("Dump upload failed: {}", cause.toString());
-                CommandHelper.failure(source, TextUtil.fail("Upload failed (" + shortReason(cause) + ")."
-                        + (local == null ? "" : " Saved " + local + " instead.")));
+                CommandHelper.failure(source, TextUtil.fail("The upload failed (" + shortReason(cause) + ")."
+                        + (local == null ? "" : " It is saved to " + local + " instead.")));
                 return;
             }
             String url = MycelDump.viewerUrl(key);
-            CommandHelper.success(source, TextUtil.prefixed(TextUtil.empty()
-                    .append(TextUtil.success("\u2714 "))
-                    .append(TextUtil.body("Dump ready: "))
-                    .append(link(url))
-                    .append(TextUtil.body(" "))
-                    .append(copyButton(url))));
+            my.celium.org.internal.stats.MycelStats.count("dump_upload");
+            CommandHelper.success(source, TextUtil.ok("Dump ready   ", TextUtil.link("Open", url), "   ",
+                    TextUtil.copy("Copy link", url)));
             MycelLog.info("Dump uploaded: {}", url);
         }));
         return 1;
@@ -408,31 +408,10 @@ public final class MycelRootCommand {
         return message;
     }
 
-    private static MutableComponent link(String url) {
-        return TextUtil.accent(url).withStyle(style -> style
-                .withUnderlined(true)
-                .withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))
-                .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted("Open in your browser"))));
-    }
-
-    private static MutableComponent copyButton(String url) {
-        return TextUtil.empty().append(TextUtil.faint("[")).append(TextUtil.accent("Copy"))
-                .append(TextUtil.faint("]")).withStyle(style -> style
-                        .withClickEvent(new ClickEvent.CopyToClipboard(url))
-                        .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted("Copy the link"))));
-    }
-
-    private static MutableComponent button(String label, String command, String hover) {
-        return TextUtil.empty().append(TextUtil.faint("[")).append(TextUtil.accent(label))
-                .append(TextUtil.faint("]")).withStyle(style -> style
-                        .withClickEvent(new ClickEvent.RunCommand(command))
-                        .withHoverEvent(new HoverEvent.ShowText(TextUtil.muted(hover))));
-    }
-
     // ---------------------------------------------------------------- errors
 
     private static Component noConfig(String modId) {
-        return TextUtil.fail("No Mycel config for '" + modId + "'. Try /mycel mods.");
+        return TextUtil.fail("No Mycel mod called '" + modId + "'. /mycel mods lists them.");
     }
 
     private static Component unknownKey(MycelConfig config, String path) {
@@ -443,15 +422,52 @@ public final class MycelRootCommand {
             }
         }
         if (matches.size() > 1) {
-            return TextUtil.fail("Ambiguous key '" + path + "'; use one of: " + String.join(", ", matches));
+            return TextUtil.fail("'" + path + "' matches more than one setting: " + String.join(", ", matches) + ".");
         }
         List<String> available = new ArrayList<>();
         for (ConfigValue<?> value : config.values()) {
             available.add(ConfigStrings.pathOf(value));
         }
-        String hint = available.isEmpty() ? "this config has no values"
-                : "available: " + String.join(", ", available);
-        return TextUtil.fail("Unknown key '" + path + "' (" + hint + ").");
+        String close = closest(path, available);
+        if (close != null) {
+            return TextUtil.fail("No setting called '" + path + "'. Did you mean " + close + "?");
+        }
+        return TextUtil.fail("No setting called '" + path + "'."
+                + (available.isEmpty() ? "" : " Settings: " + String.join(", ", available) + "."));
+    }
+
+    /** The setting name nearest to a typo, or null when none is close. */
+    private static String closest(String typed, List<String> names) {
+        String best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        String t = typed.trim().toLowerCase(java.util.Locale.ROOT);
+        for (String name : names) {
+            String n = name.toLowerCase(java.util.Locale.ROOT);
+            String leaf = n.substring(n.lastIndexOf('.') + 1);
+            int d = Math.min(distance(t, n), distance(t, leaf));
+            if (d < bestDistance) {
+                bestDistance = d;
+                best = name;
+            }
+        }
+        return best != null && bestDistance <= Math.max(1, t.length() / 3) ? best : null;
+    }
+
+    private static int distance(String a, String b) {
+        int[] row = new int[b.length() + 1];
+        for (int j = 0; j <= b.length(); j++) {
+            row[j] = j;
+        }
+        for (int i = 1; i <= a.length(); i++) {
+            int previous = row[0];
+            row[0] = i;
+            for (int j = 1; j <= b.length(); j++) {
+                int temp = row[j];
+                row[j] = Math.min(Math.min(row[j] + 1, row[j - 1] + 1), previous + (a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1));
+                previous = temp;
+            }
+        }
+        return row[b.length()];
     }
 
     private static MycelConfig configFromContext(CommandContext<CommandSourceStack> context, String name) {

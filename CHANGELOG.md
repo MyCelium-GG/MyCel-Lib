@@ -7,6 +7,17 @@ bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.
 Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.6.0] - 2026-11-04
+
+### Changed
+- A new look for every chat message from Mycel and the mods built on it: a slim colored bar shows what kind of message it is (brand red for information, green for done, amber for careful, red for failed), followed by the mod's name in grey and the message. Fewer colors, no check or cross symbols, white names and values.
+- `/mycel help` commands can be clicked to type them, `/mycel mods` names show their id and open their settings when clicked, and buttons like Upload, Open and Copy link are plain underlined labels.
+- Clearer wording everywhere, and "Did you mean ...?" when a setting name has a typo.
+
+### Added
+- Optional anonymous stats and error reports through FastStats, so we can see which MyCelium mods are used together, with which settings, and fix errors we would never hear about. Players are asked once on a screen at first start; dedicated servers send unless `shareStats` is false in `config/mycel.json` (nothing is sent on a server's very first start). Error reports only include errors that pass through MyCelium code, with user folder names and IP addresses removed. Details: https://wiki.mycelium-gg.org/privacy#mycel-stats
+- `TextUtil.button`, `suggest`, `link` and `copy` for clickable labels in the shared style, and `TextUtil.ok(Object...)` / `note(Object...)`.
+
 ## [1.5.2] - 2026-11-02
 
 ### Fixed

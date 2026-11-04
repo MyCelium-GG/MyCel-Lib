@@ -56,7 +56,7 @@ public final class Mycel {
     public static final String MOD_ID = "mycel";
 
     /** Mycel's version. Must match {@code gradle.properties}. */
-    public static final String VERSION = "1.5.2";
+    public static final String VERSION = "1.6.0";
 
     /** Mycel's own metadata (registered automatically on {@link #initialize()}). */
     public static final ModMetadata METADATA =
@@ -94,6 +94,13 @@ public final class Mycel {
                 "Whether /mycel dump may upload its report to pastes.dev. Off: reports are only saved to mycel-dumps/.");
         ConfigValue<Boolean> notices = global.booleanValue("notifyOpsOfUpdates", true,
                 "Whether operators (and the singleplayer host) get one chat line per session listing mod updates.");
+        ConfigValue<Boolean> shareStats = global.booleanValue("shareStats", true,
+                "Send anonymous usage stats to the MyCelium team through FastStats (see wiki.mycelium-gg.org/privacy). "
+                        + "Players are asked once on a screen; servers send unless this is false.");
+        ConfigValue<Boolean> shareErrors = global.booleanValue("shareErrors", true,
+                "Also send error reports from MyCelium mods, with your user folder name and IP addresses removed.");
+        ConfigValue<Boolean> statsAsked = global.booleanValue("statsAsked", false,
+                "Set when a player answered the stats question, so it is only asked once.");
         global.build(); // ConfigBuilder.build() registers the handle with Mycel.
         UpdateNotices.setEnabled(notices.get());
         notices.onChange(UpdateNotices::setEnabled);
@@ -114,6 +121,7 @@ public final class Mycel {
         for (ModMetadata mod : MODS.values()) {
             UpdateChecker.check(mod);
         }
+        my.celium.org.internal.stats.MycelStats.init(shareStats, shareErrors, statsAsked, flag, dumpUploads);
         MycelLog.info("Mycel {} initialized on {} (loader {}, MC {})", VERSION,
                 platform.platform().displayName(), platform.loaderVersion(), platform.minecraftVersion());
     }

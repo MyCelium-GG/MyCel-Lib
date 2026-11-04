@@ -52,9 +52,9 @@ public final class MycelTheme {
     /** Disabled text. */
     public static final int OFF = 0xFF5F5F5F;
     /** Wiki blue: names, keys, links. */
-    public static final int LINK = OPAQUE | TextUtil.ACCENT;
+    public static final int LINK = 0xFF79B8FF;
     /** Wiki purple: values. */
-    public static final int VALUE = OPAQUE | TextUtil.INFO;
+    public static final int VALUE = 0xFFD2A8FF;
     /** Wiki green: have, cheap, done. */
     public static final int GOOD = OPAQUE | TextUtil.SUCCESS;
     /** Wiki orange: pricey, maxed, attention. */

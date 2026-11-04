@@ -7,13 +7,18 @@ import net.minecraft.network.chat.MutableComponent;
 
 /**
  * The shared message kit with a mod's own tag, so every MyCelium mod reads
- * the same: {@code Pets › ✔ Rex came running.} Get one with
+ * the same: a slim colored bar, the mod's name in grey, then the message
+ * ({@code ▌ Pets  Rex came running.}). The bar's color says what kind of line it
+ * is: brand red for information, green for done, amber for careful, red for
+ * failed (failed lines also get light red text). Get one with
  * {@link TextUtil#voice(String)} and keep it in a constant.
  *
  * <p>Message parts are joined in order: strings become body text, components
  * are appended as they are (so names, values and buttons keep their style).
  */
 public final class ChatVoice {
+    private static final String BAR = "\u258C";
+
     private final String tag;
 
     ChatVoice(String tag) {
@@ -30,14 +35,18 @@ public final class ChatVoice {
     }
 
     /**
-     * {@code Tag › } prefix: bold wiki-red tag + faint chevron.
+     * The start of a line: brand red bar, then the tag in grey.
      *
      * @return a new prefix component
      */
     public MutableComponent prefix() {
+        return start(TextUtil.PRIMARY);
+    }
+
+    private MutableComponent start(int barColor) {
         return TextUtil.empty()
-                .append(TextUtil.primary(tag).withStyle(style -> style.withBold(true)))
-                .append(TextUtil.faint(" › "));
+                .append(TextUtil.hex(BAR, barColor))
+                .append(TextUtil.muted(" " + tag + "  "));
     }
 
     /**
@@ -51,7 +60,7 @@ public final class ChatVoice {
     }
 
     /**
-     * Info line: tag + message.
+     * Info line: brand bar, tag, message.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
@@ -61,50 +70,58 @@ public final class ChatVoice {
     }
 
     /**
-     * Success line: tag + green check + message.
+     * Success line: green bar, tag, message.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent ok(Object... parts) {
-        return prefixed(TextUtil.empty().append(TextUtil.success("✔ ")).append(TextUtil.msg(parts)));
+        return TextUtil.empty().append(start(TextUtil.SUCCESS)).append(TextUtil.msg(parts));
     }
 
     /**
-     * Error line: tag + red cross + message.
+     * Error line: red bar, tag, message in light red.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent fail(Object... parts) {
-        return prefixed(TextUtil.empty().append(TextUtil.error("✘ ")).append(TextUtil.msg(parts)));
+        MutableComponent text = TextUtil.empty();
+        for (Object part : parts) {
+            text.append(part instanceof Component component ? component : TextUtil.hex(String.valueOf(part), TextUtil.ERROR_TEXT));
+        }
+        return TextUtil.empty().append(start(TextUtil.ERROR)).append(text);
     }
 
     /**
-     * Warning line: tag + orange bang + message.
+     * Warning line: amber bar, tag, message.
      *
      * @param parts strings (body text) and components (kept as they are), in order
      * @return the line
      */
     public MutableComponent caution(Object... parts) {
-        return prefixed(TextUtil.empty().append(TextUtil.warn("! ")).append(TextUtil.msg(parts)));
+        return TextUtil.empty().append(start(TextUtil.WARN)).append(TextUtil.msg(parts));
     }
 
     /**
-     * Header line opening a multi-line reply: tag + bright bold title.
+     * Header line opening a multi-line reply: brand bar, tag, bold title. When the
+     * title already starts with the tag (like {@code "Mycel 1.6.0"}) the tag is left out.
      *
      * @param title the title
      * @return the header line
      */
     public MutableComponent header(String title) {
-        return prefixed(TextUtil.body(title).withStyle(style -> style.withBold(true)));
+        MutableComponent start = title.startsWith(tag)
+                ? TextUtil.empty().append(TextUtil.hex(BAR, TextUtil.PRIMARY)).append(TextUtil.literal(" "))
+                : prefix();
+        return start.append(TextUtil.hex(title, TextUtil.BRIGHT).withStyle(style -> style.withBold(true)));
     }
 
     /**
-     * Header line with a muted suffix, e.g. {@code header("Your pets", "3")}.
+     * Header line with grey text after the title, e.g. {@code header("Your pets", "3")}.
      *
      * @param title  the title
-     * @param detail the muted text after it
+     * @param detail the grey text after it
      * @return the header line
      */
     public MutableComponent header(String title, String detail) {

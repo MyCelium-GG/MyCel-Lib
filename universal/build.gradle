@@ -1,6 +1,32 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'com.gradleup.shadow' version '9.6.1'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'FastStats'
+        url = 'https://repo.faststats.dev/releases'
+        content {
+            includeGroup('dev.faststats.metrics')
+        }
+    }
+}
+
+// FastStats core, bundled into the universal jar and renamed to my.celium.org.internal.faststats
+// so it can never clash with the FastStats copy another mod (Dark Mode) embeds. Gson comes with
+// Minecraft; FastStats' annotations are compile-time only.
+configurations {
+    fastStats {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+dependencies {
+    fastStats "dev.faststats.metrics:core:${faststats_version}"
+    fastStats "dev.faststats.metrics:config:${faststats_version}"
 }
 
 description = rootProject.description
@@ -52,10 +78,11 @@ tasks.register('mergeServices') {
     }
 }
 
-tasks.register('universalJar', Jar) {
+tasks.register('mergedJar', Jar) {
     dependsOn(fabricJar, forgeJar, neoForgeJar, tasks.named('mergeServices'))
     archiveBaseName = 'mycel'
     archiveAppendix = minecraft_line
+    destinationDirectory = layout.buildDirectory.dir('merged')
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     from(project.zipTree(fabricJar.flatMap { it.archiveFile })) {
@@ -83,6 +110,28 @@ tasks.register('universalJar', Jar) {
                 'Built-On-Minecraft'    : minecraft_version
         ])
     }
+}
+
+// The published jar: the merged jar plus FastStats core, with every dev.faststats reference renamed.
+tasks.register('universalJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    def merged = tasks.named('mergedJar', Jar)
+    dependsOn(merged)
+    archiveBaseName = 'mycel'
+    archiveAppendix = minecraft_line
+    archiveClassifier = ''
+    from(project.zipTree(merged.flatMap { it.archiveFile }))
+    configurations = [project.configurations.fastStats]
+    relocate('dev.faststats', 'my.celium.org.internal.faststats')
+    exclude 'META-INF/MANIFEST.MF.orig'
+    manifest {
+        inheritFrom(merged.get().manifest)
+    }
+}
+tasks.named('shadowJar') {
+    enabled = false
+}
+tasks.named('assemble') {
+    dependsOn('universalJar')
 }
 
 publishing {

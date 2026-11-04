@@ -70,6 +70,7 @@ public final class MycelLog {
      */
     public static void error(String message, Object... args) {
         LOG.error("[Mycel] " + message, args);
+        reportLast(args);
     }
 
     /**
@@ -81,6 +82,7 @@ public final class MycelLog {
      */
     public static void errorMod(String modId, String message, Object... args) {
         LOG.error("[Mycel/{}] {}", modId, format(message, args));
+        reportLast(args);
     }
 
     /**
@@ -92,6 +94,14 @@ public final class MycelLog {
      */
     public static void errorMod(String modId, String message, Throwable cause) {
         LOG.error("[Mycel/{}] {}", modId, message, cause);
+        my.celium.org.internal.stats.MycelStats.report(cause);
+    }
+
+    /** Errors logged with an exception as the last argument go to FastStats too, if error reports are on. */
+    private static void reportLast(Object[] args) {
+        if (args != null && args.length > 0 && args[args.length - 1] instanceof Throwable error) {
+            my.celium.org.internal.stats.MycelStats.report(error);
+        }
     }
 
     /**

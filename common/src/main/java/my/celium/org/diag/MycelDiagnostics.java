@@ -52,9 +52,8 @@ public final class MycelDiagnostics {
     public static MutableComponent headerLine() {
         PlatformService platform = PlatformHolder.get();
         return TextUtil.header("Mycel " + Mycel.getVersion(),
-                platform.platform().displayName()
-                        + " \u00B7 loader " + platform.loaderVersion()
-                        + " \u00B7 MC " + platform.minecraftVersion());
+                platform.platform().displayName() + " " + platform.loaderVersion()
+                        + ", Minecraft " + platform.minecraftVersion());
     }
 
     /**
@@ -65,17 +64,24 @@ public final class MycelDiagnostics {
      */
     public static MutableComponent modLine(ModMetadata mod) {
         MycelConfig config = Mycel.getConfig(mod.id());
-        String configState = config == null ? "no config" : config.values().size() + " values";
+        int settings = config == null ? 0 : config.values().size();
+        MutableComponent name = TextUtil.hex(mod.name(), TextUtil.BRIGHT);
+        if (config != null) {
+            name.withStyle(style -> style
+                    .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/mycel get " + mod.id()))
+                    .withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(TextUtil.muted(
+                            mod.id() + ", " + settings + (settings == 1 ? " setting" : " settings")
+                                    + ". Click to show them."))));
+        }
         MutableComponent row = TextUtil.empty()
-                .append(TextUtil.accent(mod.name()))
-                .append(TextUtil.body(" " + mod.version()))
-                .append(TextUtil.muted("  " + mod.id() + " \u00B7 " + configState));
+                .append(name)
+                .append(TextUtil.muted("  " + mod.version()));
         if (!Mycel.isEnabled(mod.id())) {
-            row.append(TextUtil.warn("  disabled"));
+            row.append(TextUtil.warn("   off"));
         }
         UpdateResult update = UpdateChecker.lastResult(mod.id());
         if (update != null && update.updateAvailable()) {
-            row.append(TextUtil.success("  \u2191 " + update.latestVersion()));
+            row.append(TextUtil.success("   update " + update.latestVersion()));
         }
         return TextUtil.item(row);
     }
@@ -89,13 +95,13 @@ public final class MycelDiagnostics {
     public static MutableComponent configLine(ConfigValue<?> value) {
         String current = ConfigStrings.valueToString(value);
         boolean isDefault = value.isDefault();
+        String hint = ConfigStrings.constraintHint(value);
         MutableComponent row = TextUtil.empty()
-                .append(TextUtil.accent(ConfigStrings.pathOf(value)))
-                .append(TextUtil.faint(" = "))
-                .append(isDefault ? TextUtil.body(current) : TextUtil.infoText(current))
-                .append(TextUtil.muted("  " + ConfigStrings.constraintHint(value)));
-        if (!isDefault) {
-            row.append(TextUtil.muted("  (default " + ConfigStrings.defaultToString(value) + ")"));
+                .append(TextUtil.body(ConfigStrings.pathOf(value) + "  "))
+                .append(TextUtil.hex(current, isDefault ? TextUtil.BODY : TextUtil.BRIGHT));
+        String after = isDefault ? hint : "default " + ConfigStrings.defaultToString(value) + (hint.isBlank() ? "" : ", " + hint);
+        if (!after.isBlank()) {
+            row.append(TextUtil.faint("   " + after));
         }
         return TextUtil.item(row);
     }

@@ -69,14 +69,11 @@ public final class UpdateNotices {
                 names.append(TextUtil.faint(", "));
             }
             ModMetadata mod = find(update.modId());
-            names.append(TextUtil.accent(mod == null ? update.modId() : mod.name()))
-                    .append(TextUtil.infoText(" " + update.latestVersion()));
+            names.append(TextUtil.hex((mod == null ? update.modId() : mod.name()) + " " + update.latestVersion(),
+                    TextUtil.BRIGHT));
         }
-        return TextUtil.prefixed(TextUtil.msg(
-                TextUtil.success("↑ "),
-                updates.size() == 1 ? "Update available: " : "Updates available: ",
-                names,
-                TextUtil.muted("  see /mycel mods")));
+        return TextUtil.note(updates.size() == 1 ? "Update ready: " : "Updates ready: ", names, "   ",
+                TextUtil.button("Show", "/mycel mods", "See all Mycel mods and their versions"));
     }
 
     private static ModMetadata find(String modId) {

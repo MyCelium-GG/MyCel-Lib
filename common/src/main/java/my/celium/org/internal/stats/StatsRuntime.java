@@ -192,6 +192,9 @@ final class StatsRuntime {
             };
             factory.addMetric(metric);
         }
+        for (String id : stats.counterIds()) {
+            factory.addMetric(Metric.numberMap(id, () -> stats.counters(id)));
+        }
         return factory.addMetric(Metric.numberMap("usage", stats::counters))
                 .onFlush(stats::resetCounters)
                 .create();

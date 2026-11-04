@@ -20,6 +20,8 @@ class ModStatsTest {
         assertThrows(IllegalArgumentException.class, () -> builder.number("pets", () -> 2));
         assertThrows(IllegalArgumentException.class, () -> builder.number("usage", () -> 2));
         assertThrows(IllegalArgumentException.class, () -> builder.string("Bad-Id", () -> "x"));
+        builder.counters("items");
+        assertThrows(IllegalArgumentException.class, () -> builder.number("items", () -> 2));
     }
 
     @Test

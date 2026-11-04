@@ -7,6 +7,11 @@ bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.
 Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.6.1] - 2026-11-04
+
+### Fixed
+- Forge could not load Mycel 1.6.0 ("Package dev.faststats.internal not found in module"): the bundled FastStats brought its own module description, which no longer matched. Fabric and NeoForge were not affected.
+
 ## [1.6.0] - 2026-11-04
 
 ### Changed

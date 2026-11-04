@@ -123,6 +123,11 @@ tasks.register('universalJar', com.github.jengelman.gradle.plugins.shadow.tasks.
     configurations = [project.configurations.fastStats]
     relocate('dev.faststats', 'my.celium.org.internal.faststats')
     exclude 'META-INF/MANIFEST.MF.orig'
+    // FastStats ships module descriptors for its own package names. In Mycel's jar they would
+    // describe a module that does not exist, and Forge refuses the whole jar
+    // ("Package dev.faststats.internal not found in module").
+    exclude 'module-info.class'
+    exclude 'META-INF/versions/*/module-info.class'
     manifest {
         inheritFrom(merged.get().manifest)
     }

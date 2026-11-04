@@ -14,7 +14,7 @@ import net.minecraft.network.chat.TextColor;
  *
  * <p>The palette below is the shared Mycel look, all custom hex colors on chat's dark backdrop:
  * a bold bright red tag and a grey {@code »} ({@code Mycel » }), white text, names, values and
- * buttons, grey for details. Green text means it worked, yellow means careful, dark
+ * buttons, grey for details. Green text means it worked, orange means careful, dark
  * red means failed. No legacy {@code §} colors. Legacy helpers ({@link #green(String)},
  * {@link #red(String)}, {@link #gray(String)}, {@link #gold(String)}) keep their signatures and
  * render through the matching tone.
@@ -42,12 +42,12 @@ public final class TextUtil {
     public static final int PRIMARY = 0xFF3B3B;
     /** White: names, values and anything else the reader looks for inside a line. */
     public static final int ACCENT = 0xFFFFFF;
-    /** Green: success lines and good news, like an available update. */
-    public static final int SUCCESS = 0x51A800;
+    /** Bright green: success lines and good news, like an available update. */
+    public static final int SUCCESS = 0x24FF00;
     /** Dark red: the text of error lines. */
     public static final int ERROR = 0xA80000;
-    /** Yellow: the text of warning lines, things that are off. */
-    public static final int WARN = 0xFFD43B;
+    /** Orange: the text of warning lines, things that are off. */
+    public static final int WARN = 0xFFB300;
     /** Values and commands: white, like names. */
     public static final int INFO = 0xFFFFFF;
     /** Grey: details, versions, hints, keys. */
@@ -402,7 +402,7 @@ public final class TextUtil {
     }
 
     /**
-     * Warning line: tag + message in yellow.
+     * Warning line: tag + message in orange.
      *
      * @param text the message
      * @return the line

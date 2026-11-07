@@ -104,5 +104,16 @@ tasks.named('javadoc', Javadoc) {
 <meta name="twitter:card" content="summary">
 """
         index.text = index.text.replaceFirst('</head>', java.util.regex.Matcher.quoteReplacement(tags + '</head>'))
+        // Site icon: the MyCelium logo, linked from every page and served at /favicon.ico too.
+        project.copy {
+            from rootProject.file('docs/javadoc-assets')
+            into destinationDir
+        }
+        def icon = '<link rel="icon" href="/favicon.png" type="image/png">\n'
+        destinationDir.eachFileRecurse { f ->
+            if (f.name.endsWith('.html') && !f.text.contains('rel="icon"')) {
+                f.text = f.text.replaceFirst('</head>', java.util.regex.Matcher.quoteReplacement(icon + '</head>'))
+            }
+        }
     }
 }

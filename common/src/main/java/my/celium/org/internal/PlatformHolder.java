@@ -49,17 +49,26 @@ public final class PlatformHolder {
      * Detects the current runtime by loader classes actually present. Used to
      * pick the right implementation when several are visible (universal jar).
      * Never initializes the probed classes.
+     *
+     * <p>NeoForge and Forge are checked before Fabric: NeoForge mods can bundle Fabric's loader
+     * classes (Snow! Real Magic ships Forgified Fabric Loader, Sinytra Connector does the same),
+     * and taking that for Fabric made registration crash with "Registry is already frozen".
      */
     public static Platform detectRuntime() {
         ClassLoader loader = PlatformHolder.class.getClassLoader();
-        if (present(loader, "net.fabricmc.loader.api.FabricLoader")) {
-            return Platform.FABRIC;
-        }
-        if (present(loader, "net.neoforged.neoforge.common.NeoForge")) {
+        return detect(name -> present(loader, name));
+    }
+
+    /** The detection order, with the class lookup passed in so tests can fake it. */
+    static Platform detect(java.util.function.Predicate<String> present) {
+        if (present.test("net.neoforged.neoforge.common.NeoForge")) {
             return Platform.NEOFORGE;
         }
-        if (present(loader, "net.minecraftforge.fml.ModList")) {
+        if (present.test("net.minecraftforge.fml.ModList")) {
             return Platform.FORGE;
+        }
+        if (present.test("net.fabricmc.loader.api.FabricLoader")) {
+            return Platform.FABRIC;
         }
         return Platform.UNKNOWN;
     }

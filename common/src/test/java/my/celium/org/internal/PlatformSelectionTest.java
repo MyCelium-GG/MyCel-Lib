@@ -26,6 +26,27 @@ class PlatformSelectionTest {
     }
 
     @Test
+    void neoForgeWinsOverBundledFabricLoader() {
+        // Snow! Real Magic ships Forgified Fabric Loader on NeoForge: both class sets are visible.
+        java.util.Set<String> classes = java.util.Set.of("net.neoforged.neoforge.common.NeoForge",
+                "net.fabricmc.loader.api.FabricLoader");
+        assertEquals(Platform.NEOFORGE, PlatformHolder.detect(classes::contains));
+    }
+
+    @Test
+    void forgeWinsOverBundledFabricLoader() {
+        java.util.Set<String> classes = java.util.Set.of("net.minecraftforge.fml.ModList",
+                "net.fabricmc.loader.api.FabricLoader");
+        assertEquals(Platform.FORGE, PlatformHolder.detect(classes::contains));
+    }
+
+    @Test
+    void fabricAloneIsFabric() {
+        assertEquals(Platform.FABRIC, PlatformHolder.detect("net.fabricmc.loader.api.FabricLoader"::equals));
+        assertEquals(Platform.UNKNOWN, PlatformHolder.detect(name -> false));
+    }
+
+    @Test
     void selectsMatchingServiceWhenSeveralExist() {
         // Test resources register FABRIC + FORGE + NEOFORGE stubs, so every
         // detectable runtime has a match; UNKNOWN falls back without crashing.

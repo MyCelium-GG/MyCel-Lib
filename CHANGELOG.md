@@ -7,6 +7,11 @@ bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.
 Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
+## [1.6.2] - 2026-11-15
+
+### Fixed
+- Mods using Mycel crashed on NeoForge with "Registry is already frozen" when another mod bundles Fabric's loader classes, such as Snow! Real Magic (which ships Forgified Fabric Loader) or mods run through Sinytra Connector. Mycel took the game for Fabric; it now checks for NeoForge and Forge first.
+
 ## [1.6.1] - 2026-11-04
 
 ### Fixed

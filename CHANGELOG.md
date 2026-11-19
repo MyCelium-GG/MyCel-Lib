@@ -7,7 +7,12 @@ bump major. It ships as one universal jar per Minecraft version (26.3, 26.2, 26.
 Fabric + Forge + NeoForge) through JitPack as
 `com.github.MyCelium-GG:MyCel-Lib`.
 
-## [1.6.2] - 2026-11-15
+## [1.7.0] - 2026-11-19
+
+### Added
+- `ModLang`: a mod's messages in each player's own language, also on dedicated servers. It reads the mod's `assets/<modid>/lang/*.json` on the server and picks the language of the player's client (then the same language family, then English), so server-side mods can talk to every player in their language.
+- The config screen shows translated setting names and descriptions when a mod ships `<modid>.config.<key>` and `<modid>.config.<key>.desc`; names otherwise read as words ("Ball size limit" instead of "ballSizeLimit") and the description shows when you hover the name.
+- Mycel's own screens (the stats question and the config screen) in English, German, Spanish, French, Dutch, Brazilian Portuguese, Russian, Polish, Italian, Japanese and Simplified Chinese.
 
 ### Fixed
 - Mods using Mycel crashed on NeoForge with "Registry is already frozen" when another mod bundles Fabric's loader classes, such as Snow! Real Magic (which ships Forgified Fabric Loader) or mods run through Sinytra Connector. Mycel took the game for Fabric; it now checks for NeoForge and Forge first.

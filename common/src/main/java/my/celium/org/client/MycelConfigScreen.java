@@ -43,7 +43,7 @@ public final class MycelConfigScreen extends Screen {
      * @param config the config to edit
      */
     public MycelConfigScreen(Screen parent, MycelConfig config) {
-        super(Component.literal(config.metadata().name() + " configuration"));
+        super(Component.translatableWithFallback("mycel.config.title", "%s settings", config.metadata().name()));
         this.parent = parent;
         this.config = config;
         List<String> categories = config.categories();
@@ -66,8 +66,10 @@ public final class MycelConfigScreen extends Screen {
             int tabWidth = Math.min(120, (this.width - 20) / categories.size());
             int x = (this.width - tabWidth * categories.size()) / 2;
             for (String tab : categories) {
-                String label = tab.isEmpty() ? "general" : tab;
-                Button tabButton = Button.builder(Component.literal(label), button -> {
+                Component label = tab.isEmpty()
+                        ? Component.translatableWithFallback("mycel.config.general", "General")
+                        : Component.translatableWithFallback(config.metadata().id() + ".config.category." + tab, humanize(tab));
+                Button tabButton = Button.builder(label, button -> {
                     category = tab;
                     init();
                 }).bounds(x, 28, tabWidth - 4, 20).build();
@@ -84,16 +86,16 @@ public final class MycelConfigScreen extends Screen {
         }
 
         int bottomY = this.height - 28;
-        doneButton = Button.builder(Component.literal("Done"), button -> saveAndClose())
+        doneButton = Button.builder(Component.translatable("gui.done"), button -> saveAndClose())
                 .bounds(this.width / 2 - 105, bottomY, 100, 20).build();
         addRenderableWidget(doneButton);
-        addRenderableWidget(Button.builder(Component.literal("Reset all"), button -> {
+        addRenderableWidget(Button.builder(Component.translatableWithFallback("mycel.config.reset_all", "Reset all"), button -> {
             config.resetAll();
             init();
         }).bounds(this.width / 2 + 5, bottomY, 100, 20).build());
 
         scrollHint = new StringWidget(this.width - 110, this.height - 44, 100, 10,
-                Component.literal("scroll for more"), this.font);
+                Component.translatableWithFallback("mycel.config.scroll", "scroll for more"), this.font);
         scrollHint.visible = contentHeight() > visibleHeight();
         addRenderableWidget(scrollHint);
 
@@ -162,6 +164,22 @@ public final class MycelConfigScreen extends Screen {
 
     // ------------------------------------------------------------- one row
 
+    /** {@code ballSizeLimit} or {@code ball_size_limit} becomes "Ball size limit". */
+    static String humanize(String key) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < key.length(); i++) {
+            char c = key.charAt(i);
+            if (c == '_' || c == '-' || c == '.') {
+                out.append(' ');
+            } else if (Character.isUpperCase(c) && i > 0 && !Character.isUpperCase(key.charAt(i - 1))) {
+                out.append(' ').append(Character.toLowerCase(c));
+            } else {
+                out.append(out.length() == 0 ? Character.toUpperCase(c) : c);
+            }
+        }
+        return out.toString().replaceAll(" +", " ").trim();
+    }
+
     private abstract static class Row {
         final MycelConfigScreen screen;
         final ConfigValue<?> value;
@@ -175,7 +193,11 @@ public final class MycelConfigScreen extends Screen {
             this.value = value;
             int labelWidth = screen.width / 2 - 48;
             this.label = new StringWidget(16, y + 6, Math.max(40, labelWidth), 12,
-                    Component.literal(shortLabel(value)), screen.font);
+                    Component.literal(shortLabel(screen, value)), screen.font);
+            Component description = describe(screen, value);
+            if (description != null) {
+                this.label.setTooltip(net.minecraft.client.gui.components.Tooltip.create(description));
+            }
             this.editor = createEditor(y);
             this.error = new StringWidget(screen.width / 2 + 8, y + 6, 170, 12,
                     Component.empty(), screen.font);
@@ -234,9 +256,9 @@ public final class MycelConfigScreen extends Screen {
             error.setMessage(Component.literal(errorText == null ? "" : "! " + errorText));
             updateErrorVisibility(label.visible);
             if (valid) {
-                label.setMessage(Component.literal(shortLabel(value)));
+                label.setMessage(Component.literal(shortLabel(screen, value)));
             } else {
-                label.setMessage(Component.literal("! " + shortLabel(value)));
+                label.setMessage(Component.literal("! " + shortLabel(screen, value)));
             }
             screen.refreshDoneState();
         }
@@ -245,11 +267,23 @@ public final class MycelConfigScreen extends Screen {
             return valid;
         }
 
-        private static String shortLabel(ConfigValue<?> value) {
-            String key = value.key().replace('_', ' ');
-            String hint = value.description().isEmpty() ? "" : " - " + value.description();
-            String text = key + hint;
-            return text.length() > 44 ? text.substring(0, 44) + "…" : text;
+        /** The setting's name: translated when the mod ships {@code <modid>.config.<key>}, else from the key. */
+        private static String shortLabel(MycelConfigScreen screen, ConfigValue<?> value) {
+            String key = screen.config.metadata().id() + ".config." + value.key();
+            String text = net.minecraft.locale.Language.getInstance().has(key)
+                    ? net.minecraft.locale.Language.getInstance().getOrDefault(key)
+                    : humanize(value.key());
+            int max = Math.max(12, (screen.width / 2 - 48) / 6);
+            return text.length() > max ? text.substring(0, max - 1) + "…" : text;
+        }
+
+        /** The description, shown when hovering the name: {@code <modid>.config.<key>.desc}, else the English one. */
+        private static Component describe(MycelConfigScreen screen, ConfigValue<?> value) {
+            String key = screen.config.metadata().id() + ".config." + value.key() + ".desc";
+            if (net.minecraft.locale.Language.getInstance().has(key)) {
+                return Component.translatable(key);
+            }
+            return value.description().isEmpty() ? null : Component.literal(value.description());
         }
 
         abstract void apply();
@@ -277,7 +311,8 @@ public final class MycelConfigScreen extends Screen {
         }
 
         private static Component labelFor(boolean current) {
-            return Component.literal(current ? "ON" : "OFF");
+            return current ? net.minecraft.network.chat.CommonComponents.OPTION_ON
+                    : net.minecraft.network.chat.CommonComponents.OPTION_OFF;
         }
 
         @Override

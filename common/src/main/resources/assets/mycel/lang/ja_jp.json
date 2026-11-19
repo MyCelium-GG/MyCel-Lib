@@ -1,0 +1,14 @@
+{
+  "mycel.config.title": "%s の設定",
+  "mycel.config.reset_all": "すべてリセット",
+  "mycel.config.scroll": "スクロールで続きを表示",
+  "mycel.config.general": "一般",
+  "mycel.stats.title": "MyCelium MOD の改善にご協力ください",
+  "mycel.stats.body.what": "Mycel は FastStats を通じて匿名の統計を MyCelium チームに送信できます。使用中の MyCelium MOD とそのバージョンや設定、Minecraft・ローダー・Java のバージョン、MyCelium MOD のエラーが対象です。",
+  "mycel.stats.body.never": "プレイヤー名、チャット、ワールド、サーバーは送信しません。同意しない限り何も送信されません。",
+  "mycel.stats.body.change": "config/mycel.json の shareStats でいつでも変更できます。",
+  "mycel.stats.privacy": "送信される内容: %s",
+  "mycel.stats.share_all": "統計とエラーを共有",
+  "mycel.stats.share_stats": "統計のみ",
+  "mycel.stats.share_none": "共有しない"
+}

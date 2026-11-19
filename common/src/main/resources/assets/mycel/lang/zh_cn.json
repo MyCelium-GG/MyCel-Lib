@@ -1,0 +1,14 @@
+{
+  "mycel.config.title": "%s 设置",
+  "mycel.config.reset_all": "全部重置",
+  "mycel.config.scroll": "滚动查看更多",
+  "mycel.config.general": "常规",
+  "mycel.stats.title": "帮助改进 MyCelium 模组",
+  "mycel.stats.body.what": "Mycel 可以通过 FastStats 向 MyCelium 团队发送匿名统计：你使用的 MyCelium 模组及其版本和设置、你的 Minecraft、加载器和 Java 版本，以及 MyCelium 模组的错误。",
+  "mycel.stats.body.never": "不含玩家名、聊天、世界或服务器信息。未经你同意不会发送任何内容。",
+  "mycel.stats.body.change": "可随时在 config/mycel.json 中通过 shareStats 更改。",
+  "mycel.stats.privacy": "发送的内容：%s",
+  "mycel.stats.share_all": "分享统计和错误",
+  "mycel.stats.share_stats": "仅统计",
+  "mycel.stats.share_none": "不分享"
+}

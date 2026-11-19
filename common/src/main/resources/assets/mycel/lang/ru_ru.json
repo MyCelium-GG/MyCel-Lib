@@ -1,0 +1,14 @@
+{
+  "mycel.config.title": "Настройки %s",
+  "mycel.config.reset_all": "Сбросить всё",
+  "mycel.config.scroll": "прокрутите дальше",
+  "mycel.config.general": "Общие",
+  "mycel.stats.title": "Помогите улучшить моды MyCelium",
+  "mycel.stats.body.what": "Mycel может отправлять анонимную статистику команде MyCelium через FastStats: какие моды MyCelium вы используете, их версии и настройки, версии Minecraft, загрузчика и Java, а также ошибки модов MyCelium.",
+  "mycel.stats.body.never": "Никаких имён игроков, чата, миров или серверов. Ничего не отправляется без вашего согласия.",
+  "mycel.stats.body.change": "Изменить можно в любой момент: shareStats в config/mycel.json.",
+  "mycel.stats.privacy": "Что отправляется: %s",
+  "mycel.stats.share_all": "Статистика и ошибки",
+  "mycel.stats.share_stats": "Только статистика",
+  "mycel.stats.share_none": "Не отправлять"
+}

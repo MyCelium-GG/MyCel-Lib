@@ -1,0 +1,14 @@
+{
+  "mycel.config.title": "Instellingen van %s",
+  "mycel.config.reset_all": "Alles herstellen",
+  "mycel.config.scroll": "scroll voor meer",
+  "mycel.config.general": "Algemeen",
+  "mycel.stats.title": "Help MyCelium-mods te verbeteren",
+  "mycel.stats.body.what": "Mycel kan anonieme statistieken via FastStats naar het MyCelium-team sturen: welke MyCelium-mods je gebruikt, hun versies en instellingen, je Minecraft-, loader- en Java-versie en fouten uit MyCelium-mods.",
+  "mycel.stats.body.never": "Geen spelersnamen, chat, werelden of servers. Er wordt niets verstuurd zonder je toestemming.",
+  "mycel.stats.body.change": "Altijd te wijzigen met shareStats in config/mycel.json.",
+  "mycel.stats.privacy": "Wat er wordt verstuurd: %s",
+  "mycel.stats.share_all": "Statistieken en fouten delen",
+  "mycel.stats.share_stats": "Alleen statistieken",
+  "mycel.stats.share_none": "Niet delen"
+}

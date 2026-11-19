@@ -1,0 +1,14 @@
+{
+  "mycel.config.title": "Impostazioni di %s",
+  "mycel.config.reset_all": "Ripristina tutto",
+  "mycel.config.scroll": "scorri per altro",
+  "mycel.config.general": "Generale",
+  "mycel.stats.title": "Aiuta a migliorare le mod MyCelium",
+  "mycel.stats.body.what": "Mycel può inviare statistiche anonime al team MyCelium tramite FastStats: quali mod MyCelium usi, le loro versioni e impostazioni, le tue versioni di Minecraft, del loader e di Java, e gli errori delle mod MyCelium.",
+  "mycel.stats.body.never": "Nessun nome di giocatore, chat, mondo o server. Non viene inviato nulla senza il tuo consenso.",
+  "mycel.stats.body.change": "Puoi cambiarlo quando vuoi con shareStats in config/mycel.json.",
+  "mycel.stats.privacy": "Cosa viene inviato: %s",
+  "mycel.stats.share_all": "Condividi statistiche ed errori",
+  "mycel.stats.share_stats": "Solo statistiche",
+  "mycel.stats.share_none": "Non condividere"
+}

@@ -31,10 +31,24 @@ public final class StatsConsentScreen extends Screen {
 
     @Override
     protected void init() {
-        int y = Math.max(20, this.height / 2 - 90);
+        int maxWidth = Math.min(360, this.width - 40);
+        int buttonsWidth = 120;
+        for (String[] label : new String[][] {
+                {"mycel.stats.share_all", "Share stats and errors"}, {"mycel.stats.share_stats", "Stats only"},
+                {"mycel.stats.share_none", "Don't share"}}) {
+            buttonsWidth = Math.max(buttonsWidth,
+                    this.font.width(Component.translatableWithFallback(label[0], label[1])) + 20);
+        }
+        int textHeight = 0;
+        for (String[] paragraph : BODY) {
+            textHeight += this.font.split(Component.translatableWithFallback(paragraph[0], paragraph[1]), maxWidth).size()
+                    * this.font.lineHeight + 6;
+        }
+        int buttonsHeight = 3 * buttonsWidth + 12 <= this.width - 20 ? 20 : 3 * 20 + 2 * 4;
+        int total = 22 + textHeight + 26 + buttonsHeight;
+        int y = Math.max(8, (this.height - total) / 2);
         add(this.title.copy().withStyle(style -> style.withBold(true).withColor(TextUtil.BRIGHT)), y);
         y += 22;
-        int maxWidth = Math.min(360, this.width - 40);
         for (String[] paragraph : BODY) {
             MultiLineTextWidget text = new MultiLineTextWidget(Component.translatableWithFallback(paragraph[0], paragraph[1])
                     .withStyle(style -> style.withColor(TextUtil.BODY)), this.font)
@@ -45,18 +59,29 @@ public final class StatsConsentScreen extends Screen {
             y += text.getHeight() + 6;
         }
         add(Component.translatableWithFallback("mycel.stats.privacy", "What is sent: %s", "wiki.mycelium-gg.org/privacy")
-                .withStyle(style -> style.withColor(TextUtil.MUTED)), y + 2);
-        y += 28;
+                .withStyle(style -> style.withColor(TextUtil.MUTED)), y);
+        y += 26;
 
+        Component[] labels = {
+            Component.translatableWithFallback("mycel.stats.share_all", "Share stats and errors"),
+            Component.translatableWithFallback("mycel.stats.share_stats", "Stats only"),
+            Component.translatableWithFallback("mycel.stats.share_none", "Don't share"),
+        };
+        Runnable[] actions = {() -> choose(true, true), () -> choose(true, false), () -> choose(false, false)};
         int gap = 6;
-        int width = Math.min(150, (this.width - 20 - 2 * gap) / 3);
-        int left = this.width / 2 - (width * 3 + gap * 2) / 2;
-        addRenderableWidget(Button.builder(Component.translatableWithFallback("mycel.stats.share_all", "Share stats and errors"), button -> choose(true, true))
-                .bounds(left, y, width, 20).build());
-        addRenderableWidget(Button.builder(Component.translatableWithFallback("mycel.stats.share_stats", "Stats only"), button -> choose(true, false))
-                .bounds(left + width + gap, y, width, 20).build());
-        addRenderableWidget(Button.builder(Component.translatableWithFallback("mycel.stats.share_none", "Don't share"), button -> choose(false, false))
-                .bounds(left + 2 * (width + gap), y, width, 20).build());
+        int width = 120;
+        for (Component label : labels) {
+            width = Math.max(width, this.font.width(label) + 20);
+        }
+        boolean row = 3 * width + 2 * gap <= this.width - 20;
+        width = row ? width : Math.min(Math.max(width, 200), this.width - 20);
+        int left = row ? this.width / 2 - (width * 3 + gap * 2) / 2 : this.width / 2 - width / 2;
+        for (int i = 0; i < labels.length; i++) {
+            Runnable action = actions[i];
+            int x = row ? left + i * (width + gap) : left;
+            int by = row ? y : y + i * (20 + 4);
+            addRenderableWidget(Button.builder(labels[i], button -> action.run()).bounds(x, by, width, 20).build());
+        }
     }
 
     private void add(Component text, int y) {

@@ -25,8 +25,9 @@ import net.minecraft.network.chat.Component;
  */
 public final class MycelConfigScreen extends Screen {
     private static final int ROW_HEIGHT = 24;
-    private static final int TOP_ROWS = 64;
-    private static final int BOTTOM_ROWS = 36;
+    /** Where the rows start: below the title, and below the tabs when there are any. */
+    private int top = 64;
+    private static final int BOTTOM_ROWS = 42;
 
     private final Screen parent;
     private final MycelConfig config;
@@ -62,6 +63,7 @@ public final class MycelConfigScreen extends Screen {
                 this.title, this.font));
 
         List<String> categories = config.categories();
+        top = categories.size() > 1 ? 56 : 30;
         if (categories.size() > 1) {
             int tabWidth = Math.min(120, (this.width - 20) / categories.size());
             int x = (this.width - tabWidth * categories.size()) / 2;
@@ -81,7 +83,7 @@ public final class MycelConfigScreen extends Screen {
 
         int index = 0;
         for (ConfigValue<?> value : config.valuesIn(category)) {
-            rows.add(Row.create(this, value, TOP_ROWS + index * ROW_HEIGHT));
+            rows.add(Row.create(this, value, top + index * ROW_HEIGHT));
             index++;
         }
 
@@ -94,8 +96,10 @@ public final class MycelConfigScreen extends Screen {
             init();
         }).bounds(this.width / 2 + 5, bottomY, 100, 20).build());
 
-        scrollHint = new StringWidget(this.width - 110, this.height - 44, 100, 10,
-                Component.translatableWithFallback("mycel.config.scroll", "scroll for more"), this.font);
+        Component hint = Component.translatableWithFallback("mycel.config.scroll", "scroll for more")
+                .withStyle(style -> style.withColor(TextUtil.FAINT));
+        int hintWidth = this.font.width(hint) + 4;
+        scrollHint = new StringWidget(this.width / 2 - hintWidth / 2, this.height - 41, hintWidth, 10, hint, this.font);
         scrollHint.visible = contentHeight() > visibleHeight();
         addRenderableWidget(scrollHint);
 
@@ -126,14 +130,14 @@ public final class MycelConfigScreen extends Screen {
     }
 
     private int visibleHeight() {
-        return this.height - TOP_ROWS - BOTTOM_ROWS;
+        return this.height - top - BOTTOM_ROWS;
     }
 
     private void repositionRows() {
         for (int i = 0; i < rows.size(); i++) {
             Row row = rows.get(i);
-            int y = TOP_ROWS + i * ROW_HEIGHT - scroll;
-            boolean visible = y >= TOP_ROWS - ROW_HEIGHT && y <= this.height - BOTTOM_ROWS - ROW_HEIGHT + 8;
+            int y = top + i * ROW_HEIGHT - scroll;
+            boolean visible = y >= top - 2 && y + ROW_HEIGHT <= this.height - BOTTOM_ROWS;
             row.setY(y, visible);
         }
         if (scrollHint != null) {
